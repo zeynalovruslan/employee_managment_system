@@ -26,7 +26,7 @@ public class RequestedVacation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
+    @Positive
     private Long requestDay;
 
     @Enumerated(EnumType.STRING)

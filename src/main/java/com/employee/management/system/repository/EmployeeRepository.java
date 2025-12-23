@@ -15,5 +15,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
     Optional<Employee> findEmployeeByIdAndStatus(Long id, EmployeeStatusEnum status);
 
+    Employee findEmployeeById(Long id);
+
 
 }

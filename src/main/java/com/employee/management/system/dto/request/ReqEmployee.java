@@ -28,7 +28,6 @@ public class ReqEmployee {
     private LocalDate birthDate;
 
     private LocalDate startWorkDate;
-    private LocalDateTime createdAt;
 
     @Positive(message = "Salary must be positive")
     private Double salary;
@@ -38,8 +37,6 @@ public class ReqEmployee {
 
     @Positive(message = "Vacation is must be positive")
     private Long totalVacation;
-
-
 
 
 }

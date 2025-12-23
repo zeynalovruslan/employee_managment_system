@@ -3,6 +3,7 @@ package com.employee.management.system.dto.response;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 public class RespEmployee {
@@ -16,6 +17,9 @@ public class RespEmployee {
     private LocalDate birthDate;
     private LocalDate startWorkDate;
     private Double salary;
-    private Long vacation;
+    private Long totalVacation;
+    private Long usingVacation;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
 }

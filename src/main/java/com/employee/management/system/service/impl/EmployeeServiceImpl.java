@@ -42,6 +42,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     }
 
+    @Override
     public RespEmployee getEmployeeById(Long id) {
         Optional<Employee> getEmployee = employeeRepository.findEmployeeByIdAndStatus(id, EmployeeStatusEnum.ACTIVE);
 
@@ -54,11 +55,13 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     }
 
+    @Override
     public RespEmployee createEmployee(ReqEmployee request) {
         Employee saveEmplooye = employeeRepository.save(employeeMapper.toEntity(request));
         return employeeMapper.toResponse(saveEmplooye);
     }
 
+    @Override
     public RespEmployee updateEmployee(Long id, ReqEmployee request) {
 
         Employee employee = employeeRepository.findEmployeeByIdAndStatus(id, EmployeeStatusEnum.ACTIVE).orElseThrow(
@@ -70,6 +73,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         return employeeMapper.toResponse(saveEmployee);
     }
 
+    @Override
     public void deleteEmployee(Long id) {
         Employee employee = employeeRepository.findEmployeeByIdAndStatus(id, EmployeeStatusEnum.ACTIVE).orElseThrow(
                 () -> new EmployeeNotFoundException("Employee is not found "));

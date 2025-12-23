@@ -1,13 +1,12 @@
 package com.employee.management.system.entity;
 
 import com.employee.management.system.enums.EmployeeStatusEnum;
-import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -40,14 +39,11 @@ public class Employee {
 
     private Integer age;
 
-    @Nullable
     private Long totalVacation;
 
+    private Long usingVacation;
 
-    private Long remainingVacation;
-
-    @CreatedDate
-    @Column(updatable = false)
+    @CreationTimestamp
     private LocalDateTime createdAt;
 
     @UpdateTimestamp

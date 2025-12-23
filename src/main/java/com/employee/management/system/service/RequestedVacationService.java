@@ -1,10 +1,17 @@
 package com.employee.management.system.service;
 
-import com.employee.management.system.enums.RequestVacationStatusEnum;
+import com.employee.management.system.dto.request.ReqRequestedVacation;
+import com.employee.management.system.dto.response.RespRequestedVacation;
+
+import java.util.List;
 
 public interface RequestedVacationService {
 
-    void createRequestedVacation(Long id, Long requestDay);
+    void createRequestedVacation(ReqRequestedVacation request);
 
-    void updatedRequestedVacationStatus(Long requestedVacationId, RequestVacationStatusEnum status);
+    boolean updatedRequestedVacationStatus(Long requestedVacationId, ReqRequestedVacation request);
+
+    RespRequestedVacation getRequestedVacationByVacationId(Long vacationId);
+
+    List<RespRequestedVacation> getRequestedVacationByEmployeeId(Long employeeId);
 }

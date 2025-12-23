@@ -12,6 +12,7 @@ import com.employee.management.system.service.RequestedVacationService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import java.util.Arrays;
 
 @Service
 @RequiredArgsConstructor
@@ -57,11 +58,22 @@ public class RequestedVacationServiceImpl implements RequestedVacationService {
 
     }
 
-    public void UpdatedRequestedVacationStatus(Long requestedVacationId, RequestVacationStatusEnum status) {
+    public void updatedRequestedVacationStatus(Long requestedVacationId, RequestVacationStatusEnum status) {
 
-        RequestedVacation requestedVacation = requestedVacationRepository.findRequestedVacationByIdAndStatus(requestedVacationId, status).orElseThrow(()
+        RequestedVacation requestedVacation = requestedVacationRepository.findRequestedVacationByIdAndStatus(requestedVacationId,
+                RequestVacationStatusEnum.PENDING).orElseThrow(()
                 -> new BadRequestException("Requested vacation is not found"));
+
+        if (status == RequestVacationStatusEnum.PENDING) {
+            throw new BadRequestException("The request you sent is the same as the status in the system");
+        }
+        boolean isValid = Arrays.asList(RequestVacationStatusEnum.values()).contains(status);
+        if (!isValid) {
+            throw new BadRequestException("Requested vacation status is not valid");
+        }
+
         requestedVacation.setStatus(status);
+
         requestedVacationRepository.save(requestedVacation);
 
     }

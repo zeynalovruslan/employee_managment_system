@@ -8,6 +8,11 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface RequestedVacationMapper {
 
+
+    @Mapping(source = "startDay", target = "startDay")
+    @Mapping(source = "endDay", target = "endDay")
+    @Mapping(source = "vacationPay", target = "vacationPay")
+    @Mapping(source = "totalSalary", target = "totalSalary")
     @Mapping(target = "employeeId", source = "employee.id")
     @Mapping(target = "status", expression = "java(requestedVacation.getStatus().name())")
     RespRequestedVacation toResponse(RequestedVacation requestedVacation);

@@ -17,6 +17,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Service
@@ -38,46 +40,60 @@ public class RequestedVacationServiceImpl implements RequestedVacationService {
     @Override
     public List<RespRequestedVacation> getRequestedVacationByEmployeeId(Long employeeId) {
         List<RequestedVacation> vacations = requestedVacationRepository.findRequestedVacationByEmployeeId(employeeId);
-        if (vacations.isEmpty()) {
-            throw new NotFoundException("Vacation is not Found");
-        }
         return vacations.stream().map(requestedVacationMapper::toResponse).toList();
     }
 
 
     @Override
-    public void createRequestedVacation(ReqRequestedVacation request) {
-
-        if (request.getRequestDay() <= 0) {
-            throw new BadRequestException("Request day must be greater than 0");
-        }
+    public RespRequestedVacation createRequestedVacation(ReqRequestedVacation request) {
         Employee employee = employeeRepository.findEmployeeByIdAndStatus(request.getEmployeeId(), EmployeeStatusEnum.CREATED).orElseThrow(
                 () -> new EmployeeNotFoundException("Employee is not found"));
 
-        if (request.getRequestDay() > employee.getTotalVacation()) {
+        Long totalDay = ChronoUnit.DAYS.between(request.getStartDay(), request.getEndDay()) + 1;
+
+        if (totalDay > employee.getTotalVacation()) {
             throw new BadRequestException("Request day must be less than total vacation");
         }
+
+        boolean overlapExists = employee.getRequestedVacations().stream()
+                .filter(v -> v.getStatus() == RequestVacationStatusEnum.PENDING || v.getStatus() == RequestVacationStatusEnum.APPROVED)
+                .anyMatch(v ->
+                        !v.getEndDay().isBefore(request.getStartDay()) &&
+                                !v.getStartDay().isAfter(request.getEndDay())
+                );
+
+        if (overlapExists) {
+            throw new BadRequestException("Vacation dates overlap with existing vacation");
+        }
+
         List<RequestedVacation> requestedVacations = employee.getRequestedVacations();
 
-        Long count = requestedVacations.stream().filter(
-                v -> v.getStatus() == RequestVacationStatusEnum.PENDING).filter
+        Long count = requestedVacations.stream().filter(v -> v.getStatus() == RequestVacationStatusEnum.PENDING).filter
                 (v -> v.getRequestDay() != null).mapToLong(RequestedVacation::getRequestDay).sum();
 
         Long remainingVacation = employee.getTotalVacation() - count;
 
-        if (request.getRequestDay() > remainingVacation) {
+        if (totalDay > remainingVacation) {
             throw new BadRequestException("Request day must be less than total vacation");
         }
 
+        if (request.getStartDay().isAfter(request.getEndDay())) {
+            throw new BadRequestException("Start day cannot be after end day");
+        }
+
         RequestedVacation requestedVacation = new RequestedVacation();
-        requestedVacation.setRequestDay(request.getRequestDay());
+        requestedVacation.setRequestDay(totalDay);
         requestedVacation.setEmployee(employee);
         requestedVacation.setStatus(RequestVacationStatusEnum.PENDING);
+        requestedVacation.setStartDay(request.getStartDay());
+        requestedVacation.setEndDay(request.getEndDay());
 
         if (employee.getUsingVacation() == null) {
             employee.setUsingVacation(0L);
         }
         requestedVacationRepository.save(requestedVacation);
+
+        return requestedVacationMapper.toResponse(requestedVacation);
     }
 
     @Override
@@ -106,5 +122,40 @@ public class RequestedVacationServiceImpl implements RequestedVacationService {
         return true;
     }
 
+    @Override
+    public RespRequestedVacation calculateVacationPayByVacationId(Long requestedVacationId) {
+
+        RequestedVacation requestedVacation = requestedVacationRepository.findById(requestedVacationId).orElseThrow(()
+                -> new NotFoundException("Vacation is not found"));
+
+        Employee employee = requestedVacation.getEmployee();
+        BigDecimal dailySalary = employee.getSalary().divide(new BigDecimal(21));
+        BigDecimal dailyVacationPay = dailySalary.multiply(dailySalary);
+        BigDecimal totalVacationPay = dailyVacationPay.multiply(new BigDecimal(requestedVacation.getRequestDay()));
+
+        Long remainingDay = 21 - requestedVacation.getRequestDay();
+        BigDecimal remainingDaysPay = dailySalary.multiply(new BigDecimal(remainingDay));
+
+        BigDecimal totalSalary = remainingDaysPay.add(totalVacationPay);
+
+        requestedVacation.setTotalSalary(totalSalary);
+        requestedVacation.setVacationPay(totalVacationPay);
+        requestedVacationRepository.save(requestedVacation);
+
+        return requestedVacationMapper.toResponse(requestedVacation);
+
+    }
+
+
+    public RespRequestedVacation calculateVacationPayByEmployeeId(Long employeeId) {
+
+        Employee employee = employeeRepository.findEmployeeById(employeeId).orElseThrow(()
+                -> new EmployeeNotFoundException("Employee is not found"));
+
+        List<RequestedVacation> requestedVacation = employee.getRequestedVacations();
+
+        return null;
+
+    }
 
 }

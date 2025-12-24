@@ -3,6 +3,7 @@ package com.employee.management.system.dto.request;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -30,7 +31,7 @@ public class ReqEmployee {
     private LocalDate startWorkDate;
 
     @Positive(message = "Salary must be positive")
-    private Double salary;
+    private BigDecimal salary;
 
     @Positive(message = "Age must be positive")
     private Integer age;

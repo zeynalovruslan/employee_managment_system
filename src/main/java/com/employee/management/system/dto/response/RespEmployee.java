@@ -2,6 +2,7 @@ package com.employee.management.system.dto.response;
 
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -16,7 +17,7 @@ public class RespEmployee {
     private String status;
     private LocalDate birthDate;
     private LocalDate startWorkDate;
-    private Double salary;
+    private BigDecimal salary;
     private Long totalVacation;
     private Long usingVacation;
     private LocalDateTime createdAt;

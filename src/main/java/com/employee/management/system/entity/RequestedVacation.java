@@ -2,7 +2,6 @@ package com.employee.management.system.entity;
 
 import com.employee.management.system.enums.RequestVacationStatusEnum;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,8 +9,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.springframework.data.annotation.CreatedDate;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -29,9 +29,16 @@ public class RequestedVacation {
     @Positive
     private Long requestDay;
 
+    private LocalDate startDay;
+
+    private LocalDate endDay;
+
     @Enumerated(EnumType.STRING)
     private RequestVacationStatusEnum status;
 
+    private BigDecimal vacationPay;
+
+    private BigDecimal totalSalary;
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;

@@ -8,8 +8,10 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -33,16 +35,10 @@ public class Employee {
     private EmployeeStatusEnum status;
     private LocalDate birthDate;
     private LocalDate startWorkDate;
-
-
-    private Double salary;
-
+    private BigDecimal salary;
     private Integer age;
-
     private Long totalVacation;
-
     private Long usingVacation;
-
     @CreationTimestamp
     private LocalDateTime createdAt;
 
@@ -55,6 +51,9 @@ public class Employee {
 
     @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RequestedVacation> requestedVacations;
+
+    @OneToMany(mappedBy = "employee" ,cascade = CascadeType.ALL)
+    private List<EmployeeInvoice> invoices = new ArrayList<>();
 
 
 }

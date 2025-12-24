@@ -7,11 +7,13 @@ import java.util.List;
 
 public interface RequestedVacationService {
 
-    void createRequestedVacation(ReqRequestedVacation request);
+    RespRequestedVacation createRequestedVacation(ReqRequestedVacation request);
 
     boolean updatedRequestedVacationStatus(Long requestedVacationId, ReqRequestedVacation request);
 
     RespRequestedVacation getRequestedVacationByVacationId(Long vacationId);
 
     List<RespRequestedVacation> getRequestedVacationByEmployeeId(Long employeeId);
+
+    RespRequestedVacation calculateVacationPayByVacationId(Long requestedVacationId);
 }

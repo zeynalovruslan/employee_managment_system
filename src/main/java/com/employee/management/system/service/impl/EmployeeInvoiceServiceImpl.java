@@ -1,10 +1,14 @@
 package com.employee.management.system.service.impl;
 
+import com.employee.management.system.dto.response.RespEmployeeInvoice;
 import com.employee.management.system.entity.Employee;
 import com.employee.management.system.entity.EmployeeInvoice;
 import com.employee.management.system.enums.EmployeeStatusEnum;
 import com.employee.management.system.enums.RequestVacationStatusEnum;
 import com.employee.management.system.exception.BadRequestException;
+import com.employee.management.system.exception.EmployeeNotFoundException;
+import com.employee.management.system.exception.NotFoundException;
+import com.employee.management.system.mapper.EmployeeInvoiceMapper;
 import com.employee.management.system.repository.EmployeeInvoiceRepository;
 import com.employee.management.system.repository.EmployeeRepository;
 import com.employee.management.system.repository.RequestedVacationRepository;
@@ -29,8 +33,10 @@ public class EmployeeInvoiceServiceImpl implements EmployeeInvoiceService {
     private final EmployeeRepository employeeRepository;
     private final EmployeeInvoiceRepository employeeInvoiceRepository;
     private final RequestedVacationRepository requestedVacationRepository;
+    private final EmployeeInvoiceMapper employeeInvoiceMapper;
 
     @Transactional
+    @Override
     public void calculateMonthlySalary(int year, int month) {
 
         YearMonth yearMonth = YearMonth.of(year, month);
@@ -38,7 +44,8 @@ public class EmployeeInvoiceServiceImpl implements EmployeeInvoiceService {
         LocalDate endOfMonth = yearMonth.atEndOfMonth();
 
 
-        List<Employee> employeeList = employeeRepository.findEmployeeByStatus(EmployeeStatusEnum.CREATED);
+        List<Employee> employeeList = employeeRepository.findEmployeeByStatus(
+                EmployeeStatusEnum.CREATED).orElseThrow(() -> new EmployeeNotFoundException("Employee not found"));
 
         for (Employee employee : employeeList) {
 
@@ -55,6 +62,8 @@ public class EmployeeInvoiceServiceImpl implements EmployeeInvoiceService {
                     BigDecimal.valueOf(yearMonth.lengthOfMonth()),
                     RoundingMode.HALF_UP);
 
+            BigDecimal dailyVacationSalary = dailySalary.multiply(new BigDecimal(0.75));
+
 
             BigDecimal vacationSalary = requestedVacationRepository.findRequestedVacationByEmployeeIdAndStatus(employee.getId(),
                     RequestVacationStatusEnum.APPROVED).stream().map(requestedVacation -> {
@@ -68,9 +77,8 @@ public class EmployeeInvoiceServiceImpl implements EmployeeInvoiceService {
 
                 long vacationDays = ChronoUnit.DAYS.between(vacationStart, vacationEnd) + 1;
 
-                return dailySalary.multiply(BigDecimal.valueOf(vacationDays));
+                return dailyVacationSalary.multiply(BigDecimal.valueOf(vacationDays));
             }).reduce(BigDecimal.ZERO, BigDecimal::add);
-
 
             EmployeeInvoice employeeInvoice = new EmployeeInvoice();
             employeeInvoice.setEmployee(employee);
@@ -84,7 +92,14 @@ public class EmployeeInvoiceServiceImpl implements EmployeeInvoiceService {
             employeeInvoiceRepository.save(employeeInvoice);
 
         }
+    }
 
+    @Override
+    public List<RespEmployeeInvoice> getVacationsByEmployeeId(Long employeeId) {
+
+        List<EmployeeInvoice> invoices = employeeInvoiceRepository.findByEmployeeId(employeeId).orElseThrow(()
+                -> new NotFoundException("Invoices not found"));
+        return invoices.stream().map(employeeInvoiceMapper::toResponse).toList();
 
     }
 

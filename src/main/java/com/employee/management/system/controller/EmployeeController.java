@@ -24,7 +24,7 @@ public class EmployeeController {
     }
 
     @GetMapping("/{id}")
-    public RespEmployee getEmployeeById(@PathVariable @NotNull Long id) {
+    public RespEmployee getEmployeeById(@PathVariable @NotNull(message = "Employee id is cannot empty") Long id) {
         return employeeService.getEmployeeById(id);
     }
 

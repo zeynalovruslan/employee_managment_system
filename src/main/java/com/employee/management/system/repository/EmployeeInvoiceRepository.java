@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface EmployeeInvoiceRepository extends JpaRepository<EmployeeInvoice, Long> {
@@ -33,7 +34,7 @@ public interface EmployeeInvoiceRepository extends JpaRepository<EmployeeInvoice
     );
 
 
-    List<RequestedVacation> findByEmployeeId(Long employeeId);
+   Optional<List<EmployeeInvoice>> findByEmployeeId(Long employeeId);
 
 
 }

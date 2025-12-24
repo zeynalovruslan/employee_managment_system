@@ -1,57 +1,40 @@
 package com.employee.management.system.service.impl;
 
+import com.employee.management.system.dto.request.ReqEmployee;
 import com.employee.management.system.dto.response.RespEmployee;
 import com.employee.management.system.entity.Employee;
-import com.employee.management.system.dto.request.ReqEmployee;
 import com.employee.management.system.enums.EmployeeStatusEnum;
-import com.employee.management.system.exception.BadRequestException;
 import com.employee.management.system.exception.EmployeeNotFoundException;
 import com.employee.management.system.mapper.EmployeeMapper;
 import com.employee.management.system.repository.EmployeeRepository;
 import com.employee.management.system.service.EmployeeService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class EmployeeServiceImpl implements EmployeeService {
 
     private final EmployeeRepository employeeRepository;
     private final EmployeeMapper employeeMapper;
 
-    public EmployeeServiceImpl(EmployeeRepository employeeRepository, EmployeeMapper employeeMapper) {
-        this.employeeRepository = employeeRepository;
-        this.employeeMapper = employeeMapper;
-    }
-
 
     @Override
     public List<RespEmployee> getAllEmployees() {
-
-        List<Employee> employeeList = employeeRepository.findEmployeeByStatus(EmployeeStatusEnum.ACTIVE);
-
-        if (employeeList.isEmpty()) {
-            log.info("Employee list is empty");
-        }
-
+        List<Employee> employeeList = employeeRepository.findEmployeeByStatus(
+                EmployeeStatusEnum.ACTIVE).orElseThrow(() -> new EmployeeNotFoundException("Employee not found"));
         return employeeList.stream().map(employeeMapper::toResponse).toList();
-
-
     }
 
     @Override
     public RespEmployee getEmployeeById(Long id) {
-        Optional<Employee> getEmployee = employeeRepository.findEmployeeByIdAndStatus(id, EmployeeStatusEnum.ACTIVE);
-
-        if (getEmployee.isEmpty()) {
-            System.out.println("Employee not found");
-            throw new RuntimeException("Employee not found");
-        }
-
-        return employeeMapper.toResponse(getEmployee.get());
+        Employee getEmployee = employeeRepository.findEmployeeByIdAndStatus
+                (id, EmployeeStatusEnum.ACTIVE).orElseThrow(() -> new EmployeeNotFoundException("Employee not found"));
+        return employeeMapper.toResponse(getEmployee);
 
     }
 

@@ -130,7 +130,7 @@ public class RequestedVacationServiceImpl implements RequestedVacationService {
 
         Employee employee = requestedVacation.getEmployee();
         BigDecimal dailySalary = employee.getSalary().divide(new BigDecimal(21));
-        BigDecimal dailyVacationPay = dailySalary.multiply(dailySalary);
+        BigDecimal dailyVacationPay = dailySalary.multiply(new BigDecimal(0.75));
         BigDecimal totalVacationPay = dailyVacationPay.multiply(new BigDecimal(requestedVacation.getRequestDay()));
 
         Long remainingDay = 21 - requestedVacation.getRequestDay();

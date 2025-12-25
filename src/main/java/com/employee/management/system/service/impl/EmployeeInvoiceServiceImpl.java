@@ -1,6 +1,7 @@
 package com.employee.management.system.service.impl;
 
 import com.employee.management.system.dto.response.RespEmployeeInvoice;
+import com.employee.management.system.entity.DayOffDay;
 import com.employee.management.system.entity.Employee;
 import com.employee.management.system.entity.EmployeeInvoice;
 import com.employee.management.system.enums.EmployeeStatusEnum;
@@ -9,6 +10,7 @@ import com.employee.management.system.exception.BadRequestException;
 import com.employee.management.system.exception.EmployeeNotFoundException;
 import com.employee.management.system.exception.NotFoundException;
 import com.employee.management.system.mapper.EmployeeInvoiceMapper;
+import com.employee.management.system.repository.DayOffDayRepository;
 import com.employee.management.system.repository.EmployeeInvoiceRepository;
 import com.employee.management.system.repository.EmployeeRepository;
 import com.employee.management.system.repository.RequestedVacationRepository;
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
@@ -34,6 +37,7 @@ public class EmployeeInvoiceServiceImpl implements EmployeeInvoiceService {
     private final EmployeeInvoiceRepository employeeInvoiceRepository;
     private final RequestedVacationRepository requestedVacationRepository;
     private final EmployeeInvoiceMapper employeeInvoiceMapper;
+    private final DayOffDayRepository dayOffDayRepository;
 
     @Transactional
     @Override
@@ -56,14 +60,26 @@ public class EmployeeInvoiceServiceImpl implements EmployeeInvoiceService {
                 throw new BadRequestException("Invoice already exists for this month");
             }
 
+            List<DayOffDay> holidays = dayOffDayRepository.findHolidayByYearAndMonth(year, month);
+            int holidayCount = holidays.size();
+
+            int weekendDayCount = 0;
+            for (int i = 1; i <= yearMonth.lengthOfMonth(); i++) {
+
+                DayOfWeek dayOfWeek = LocalDate.of(year, month, i).getDayOfWeek();
+                if (dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY) {
+                    weekendDayCount++;
+                }
+            }
+
+            BigDecimal workingDay = BigDecimal.valueOf(yearMonth.lengthOfMonth())
+                    .subtract(new BigDecimal(weekendDayCount + holidayCount));
+
             BigDecimal baseSalary = employee.getSalary();
 
-            BigDecimal dailySalary = baseSalary.divide(
-                    BigDecimal.valueOf(yearMonth.lengthOfMonth()),
-                    RoundingMode.HALF_UP);
+            BigDecimal dailySalary = baseSalary.divide(workingDay, 2, RoundingMode.HALF_UP);
 
-            BigDecimal dailyVacationSalary = dailySalary.multiply(new BigDecimal(0.75));
-
+            BigDecimal dailyVacationSalary = dailySalary.multiply(new BigDecimal("0.75"));
 
             BigDecimal vacationSalary = requestedVacationRepository.findRequestedVacationByEmployeeIdAndStatus(employee.getId(),
                     RequestVacationStatusEnum.APPROVED).stream().map(requestedVacation -> {

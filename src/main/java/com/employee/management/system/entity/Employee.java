@@ -55,5 +55,8 @@ public class Employee {
     @OneToMany(mappedBy = "employee" ,cascade = CascadeType.ALL)
     private List<EmployeeInvoice> invoices = new ArrayList<>();
 
+    @OneToMany(mappedBy = "employee" ,cascade =CascadeType.ALL )
+    private List <DailyCheck> dailyCheck;
+
 
 }

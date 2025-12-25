@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "dayOff")
+@Table(name = "day_off")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -22,6 +22,4 @@ public class DayOffDay {
     private Integer year;
     private Integer month;
     private Integer holiday;
-
-
 }

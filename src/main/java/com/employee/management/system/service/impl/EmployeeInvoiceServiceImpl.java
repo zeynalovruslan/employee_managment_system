@@ -15,6 +15,7 @@ import com.employee.management.system.repository.EmployeeInvoiceRepository;
 import com.employee.management.system.repository.EmployeeRepository;
 import com.employee.management.system.repository.RequestedVacationRepository;
 import com.employee.management.system.service.EmployeeInvoiceService;
+import com.employee.management.system.util.InvoiceUtility;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -43,13 +44,23 @@ public class EmployeeInvoiceServiceImpl implements EmployeeInvoiceService {
     @Override
     public void calculateMonthlySalary(int year, int month) {
 
+
         YearMonth yearMonth = YearMonth.of(year, month);
         LocalDate startOfMonth = yearMonth.atDay(1);
         LocalDate endOfMonth = yearMonth.atEndOfMonth();
-
-
         List<Employee> employeeList = employeeRepository.findEmployeeByStatus(
                 EmployeeStatusEnum.CREATED).orElseThrow(() -> new EmployeeNotFoundException("Employee not found"));
+
+        List<DayOffDay> holidays = dayOffDayRepository.findHolidayByYearAndMonth(year, month);
+        int holidayCount = holidays.size();
+
+        int weekendDayCount = 0;
+        for (int i = 1; i <= yearMonth.lengthOfMonth(); i++) {
+            DayOfWeek dayOfWeek = LocalDate.of(year, month, i).getDayOfWeek();
+            if (dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY) {
+                weekendDayCount++;
+            }
+        }
 
         for (Employee employee : employeeList) {
 
@@ -58,18 +69,6 @@ public class EmployeeInvoiceServiceImpl implements EmployeeInvoiceService {
 
             if (exists) {
                 throw new BadRequestException("Invoice already exists for this month");
-            }
-
-            List<DayOffDay> holidays = dayOffDayRepository.findHolidayByYearAndMonth(year, month);
-            int holidayCount = holidays.size();
-
-            int weekendDayCount = 0;
-            for (int i = 1; i <= yearMonth.lengthOfMonth(); i++) {
-
-                DayOfWeek dayOfWeek = LocalDate.of(year, month, i).getDayOfWeek();
-                if (dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY) {
-                    weekendDayCount++;
-                }
             }
 
             BigDecimal workingDay = BigDecimal.valueOf(yearMonth.lengthOfMonth())

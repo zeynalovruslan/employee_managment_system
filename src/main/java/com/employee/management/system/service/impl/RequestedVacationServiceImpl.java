@@ -146,16 +146,4 @@ public class RequestedVacationServiceImpl implements RequestedVacationService {
 
     }
 
-
-    public RespRequestedVacation calculateVacationPayByEmployeeId(Long employeeId) {
-
-        Employee employee = employeeRepository.findEmployeeById(employeeId).orElseThrow(()
-                -> new EmployeeNotFoundException("Employee is not found"));
-
-        List<RequestedVacation> requestedVacation = employee.getRequestedVacations();
-
-        return null;
-
-    }
-
 }

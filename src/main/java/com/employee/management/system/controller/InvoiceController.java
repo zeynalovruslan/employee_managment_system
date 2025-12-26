@@ -29,7 +29,7 @@ public class InvoiceController {
     @GetMapping("/employee/{employeeId}/invoices")
     public List<RespEmployeeInvoice> getVacationsByEmployeeId
             (@PathVariable @NotNull(message = "Employee id cannot be empty") Long employeeId) {
-        return employeeInvoiceService.getVacationsByEmployeeId(employeeId);
+        return employeeInvoiceService.getInvoicesByEmployeeId(employeeId);
     }
 
 }

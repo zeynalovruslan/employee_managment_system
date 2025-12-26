@@ -58,6 +58,7 @@ public class DailyCheckServiceImpl implements DailyCheckService {
         long overtimeMinutes = 0;
         if (request.getExitTime().isAfter(endWorkTime)) {
             overtimeMinutes = Duration.between(endWorkTime, request.getExitTime()).toMinutes();
+
         }
 
         dailyCheck.setEmployee(employee);

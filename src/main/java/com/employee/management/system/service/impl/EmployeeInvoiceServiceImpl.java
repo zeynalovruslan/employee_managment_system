@@ -4,6 +4,7 @@ import com.employee.management.system.dto.response.RespEmployeeInvoice;
 import com.employee.management.system.entity.DayOffDay;
 import com.employee.management.system.entity.Employee;
 import com.employee.management.system.entity.EmployeeInvoice;
+import com.employee.management.system.entity.RequestedVacation;
 import com.employee.management.system.enums.EmployeeStatusEnum;
 import com.employee.management.system.enums.RequestVacationStatusEnum;
 import com.employee.management.system.exception.BadRequestException;
@@ -15,7 +16,6 @@ import com.employee.management.system.repository.EmployeeInvoiceRepository;
 import com.employee.management.system.repository.EmployeeRepository;
 import com.employee.management.system.repository.RequestedVacationRepository;
 import com.employee.management.system.service.EmployeeInvoiceService;
-import com.employee.management.system.util.InvoiceUtility;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,8 +26,9 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 
@@ -40,6 +41,7 @@ public class EmployeeInvoiceServiceImpl implements EmployeeInvoiceService {
     private final EmployeeInvoiceMapper employeeInvoiceMapper;
     private final DayOffDayRepository dayOffDayRepository;
 
+
     @Transactional
     @Override
     public void calculateMonthlySalary(int year, int month) {
@@ -48,11 +50,11 @@ public class EmployeeInvoiceServiceImpl implements EmployeeInvoiceService {
         YearMonth yearMonth = YearMonth.of(year, month);
         LocalDate startOfMonth = yearMonth.atDay(1);
         LocalDate endOfMonth = yearMonth.atEndOfMonth();
-        List<Employee> employeeList = employeeRepository.findEmployeeByStatus(
-                EmployeeStatusEnum.CREATED).orElseThrow(() -> new EmployeeNotFoundException("Employee not found"));
+        List<Employee> employeeList = employeeRepository.findEmployeeByStatus(EmployeeStatusEnum.CREATED).orElseThrow(() -> new EmployeeNotFoundException("Employee not found"));
 
         List<DayOffDay> holidays = dayOffDayRepository.findHolidayByYearAndMonth(year, month);
         int holidayCount = holidays.size();
+
 
         int weekendDayCount = 0;
         for (int i = 1; i <= yearMonth.lengthOfMonth(); i++) {
@@ -64,15 +66,19 @@ public class EmployeeInvoiceServiceImpl implements EmployeeInvoiceService {
 
         for (Employee employee : employeeList) {
 
-            boolean exists = employeeInvoiceRepository
-                    .existsByEmployeeIdAndYearAndMonth(employee.getId(), year, month);
+            boolean exists = employeeInvoiceRepository.existsByEmployeeIdAndYearAndMonth(employee.getId(), year, month);
 
             if (exists) {
                 throw new BadRequestException("Invoice already exists for this month");
             }
 
-            BigDecimal workingDay = BigDecimal.valueOf(yearMonth.lengthOfMonth())
-                    .subtract(new BigDecimal(weekendDayCount + holidayCount));
+            List<RequestedVacation> vacations = requestedVacationRepository.findRequestedVacationByEmployeeIdAndStatus(
+                    employee.getId(),
+                    RequestVacationStatusEnum.APPROVED);
+
+            long workingDaysCount = calculateWorkingDays(yearMonth, holidays, vacations, startOfMonth, endOfMonth);
+
+            BigDecimal workingDay = BigDecimal.valueOf(workingDaysCount);
 
             BigDecimal baseSalary = employee.getSalary();
 
@@ -80,19 +86,17 @@ public class EmployeeInvoiceServiceImpl implements EmployeeInvoiceService {
 
             BigDecimal dailyVacationSalary = dailySalary.multiply(new BigDecimal("0.75"));
 
-            BigDecimal vacationSalary = requestedVacationRepository.findRequestedVacationByEmployeeIdAndStatus(employee.getId(),
-                    RequestVacationStatusEnum.APPROVED).stream().map(requestedVacation -> {
-                LocalDate vacationStart = requestedVacation.getStartDay().isBefore(startOfMonth) ? startOfMonth : requestedVacation.getStartDay();
+            BigDecimal vacationSalary = vacations.stream().map(v -> {
+                LocalDate vacationStart = v.getStartDay().isBefore(startOfMonth) ? startOfMonth : v.getStartDay();
+                LocalDate vacationEnd = v.getEndDay().isAfter(endOfMonth) ? endOfMonth : v.getEndDay();
 
-                LocalDate vacationEnd = requestedVacation.getEndDay().isAfter(endOfMonth) ? endOfMonth : requestedVacation.getEndDay();
+                Set<LocalDate> vacationDaysSet = vacationStart.datesUntil(vacationEnd.plusDays(1)).filter(d -> {
+                    DayOfWeek dow = d.getDayOfWeek();
+                    return dow != DayOfWeek.SATURDAY && dow != DayOfWeek.SUNDAY &&
+                            holidays.stream().map(DayOffDay::getHoliday).noneMatch(h -> h.equals(d));
+                }).collect(Collectors.toSet());
 
-                if (vacationStart.isAfter(vacationEnd)) {
-                    return BigDecimal.ZERO;
-                }
-
-                long vacationDays = ChronoUnit.DAYS.between(vacationStart, vacationEnd) + 1;
-
-                return dailyVacationSalary.multiply(BigDecimal.valueOf(vacationDays));
+                return dailyVacationSalary.multiply(BigDecimal.valueOf(vacationDaysSet.size()));
             }).reduce(BigDecimal.ZERO, BigDecimal::add);
 
             EmployeeInvoice employeeInvoice = new EmployeeInvoice();
@@ -110,13 +114,51 @@ public class EmployeeInvoiceServiceImpl implements EmployeeInvoiceService {
     }
 
     @Override
-    public List<RespEmployeeInvoice> getVacationsByEmployeeId(Long employeeId) {
+    public List<RespEmployeeInvoice> getInvoicesByEmployeeId(Long employeeId) {
 
-        List<EmployeeInvoice> invoices = employeeInvoiceRepository.findByEmployeeId(employeeId).orElseThrow(()
-                -> new NotFoundException("Invoices not found"));
+        List<EmployeeInvoice> invoices = employeeInvoiceRepository.findByEmployeeId(employeeId).orElseThrow(() -> new NotFoundException("Invoices not found"));
         return invoices.stream().map(employeeInvoiceMapper::toResponse).toList();
 
     }
 
 
+
+    public long calculateWorkingDays(YearMonth yearMonth,
+                                     List<DayOffDay> dayOffDays,
+                                     List<RequestedVacation> requestedVacations,
+                                     LocalDate startOfMonth, LocalDate endOfMonth) {
+
+        Set<LocalDate> holidaySet = dayOffDays.stream().map(dayOffDay
+                -> LocalDate.of(dayOffDay.getYear(), dayOffDay.getMonth(), dayOffDay.getHoliday())).collect(Collectors.toSet());
+
+
+        Set<LocalDate> vacationSet = requestedVacations.stream().flatMap(v -> {
+
+            LocalDate start = v.getStartDay().isBefore(startOfMonth) ? startOfMonth : v.getStartDay();
+
+            LocalDate end = v.getEndDay().isAfter(endOfMonth) ? endOfMonth : v.getEndDay();
+            return start.datesUntil(end.plusDays(1));
+        }).collect(Collectors.toSet());
+
+        long workingDays = 0;
+        for (int i = 1; i <= yearMonth.lengthOfMonth(); i++) {
+
+            LocalDate yearMonthDay = yearMonth.atDay(i);
+            DayOfWeek dayOfWeek = yearMonthDay.getDayOfWeek();
+
+            if (dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY) {
+                continue;
+            }
+
+            if (holidaySet.contains(yearMonthDay)) {
+                continue;
+            }
+
+            if (vacationSet.contains(yearMonthDay)) {
+                continue;
+            }
+            workingDays++;
+        }
+        return workingDays;
+    }
 }

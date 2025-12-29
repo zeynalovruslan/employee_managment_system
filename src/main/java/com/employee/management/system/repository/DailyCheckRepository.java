@@ -13,5 +13,9 @@ public interface DailyCheckRepository extends JpaRepository<DailyCheck, Long> {
 
     boolean existsDailyCheckByEmployeeAndWorkDate(Employee employee, LocalDate workDate);
 
+    List<DailyCheck> findOverTimeByEmployeeIdAndYearAndMonth(Long employeeId, int year, int month);
+
+    List<DailyCheck> findLateTimeByEmployeeIdAndYearAndMonth(Long employeeId, int year, int month);
+
 
 }

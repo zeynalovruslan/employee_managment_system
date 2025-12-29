@@ -9,9 +9,9 @@ import java.util.List;
 @Repository
 public interface DayOffDayRepository extends JpaRepository<DayOffDay, Long> {
 
-   DayOffDay findByYearAndMonth(int year, int month);
-
   List <DayOffDay> findHolidayByYearAndMonth(int year, int month);
+
+  boolean existsByYearAndMonthAndHoliday(int year, int month , int holiday);
 
 
 }

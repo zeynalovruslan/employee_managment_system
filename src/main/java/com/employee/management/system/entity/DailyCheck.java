@@ -24,7 +24,6 @@ public class DailyCheck {
     private LocalDate workDate;
 
     private long lateTime;
-
     private long overTime;
 
 

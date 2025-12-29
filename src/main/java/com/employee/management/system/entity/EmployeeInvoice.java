@@ -25,6 +25,9 @@ public class EmployeeInvoice {
     private BigDecimal totalSalary;
     private BigDecimal vacationSalary;
     private BigDecimal baseSalary;
+    private long overTime;
+    private long lateTime;
+
 
     private LocalDateTime createdAt;
 

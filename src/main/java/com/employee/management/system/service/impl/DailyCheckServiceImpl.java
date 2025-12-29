@@ -6,6 +6,7 @@ import com.employee.management.system.entity.Employee;
 import com.employee.management.system.enums.CheckStatusEnum;
 import com.employee.management.system.exception.EmployeeNotFoundException;
 import com.employee.management.system.repository.DailyCheckRepository;
+import com.employee.management.system.repository.DayOffDayRepository;
 import com.employee.management.system.repository.EmployeeRepository;
 import com.employee.management.system.service.DailyCheckService;
 import jakarta.transaction.Transactional;
@@ -14,6 +15,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -25,6 +27,7 @@ public class DailyCheckServiceImpl implements DailyCheckService {
 
     private final EmployeeRepository employeeRepository;
     private final DailyCheckRepository dailyCheckRepository;
+    private final DayOffDayRepository dayOffDayRepository;
 
     @Value("${work.work-start-time}")
     private LocalTime startWorkTime;
@@ -59,6 +62,7 @@ public class DailyCheckServiceImpl implements DailyCheckService {
         if (request.getExitTime().isAfter(endWorkTime)) {
             overtimeMinutes = Duration.between(endWorkTime, request.getExitTime()).toMinutes();
 
+
         }
 
         dailyCheck.setEmployee(employee);
@@ -80,8 +84,17 @@ public class DailyCheckServiceImpl implements DailyCheckService {
     public void checkAbsentEmployee() {
 
         LocalDate workDay = LocalDate.now();
-
+        DayOfWeek dayOfWeek = workDay.getDayOfWeek();
         List<Employee> employees = employeeRepository.findAll();
+
+        if (dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY) {
+            return;
+        }
+
+        boolean existsDate = dayOffDayRepository.existsByYearAndMonthAndHoliday(workDay.getYear(), workDay.getMonthValue(), workDay.getDayOfMonth());
+        if (existsDate) {
+            return;
+        }
 
         for (Employee employee : employees) {
             boolean exists = dailyCheckRepository.existsDailyCheckByEmployeeAndWorkDate(employee, workDay);

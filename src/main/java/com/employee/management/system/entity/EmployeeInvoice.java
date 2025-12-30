@@ -27,6 +27,10 @@ public class EmployeeInvoice {
     private BigDecimal baseSalary;
     private long overTime;
     private long lateTime;
+    private BigDecimal overTimeSalary;
+    private BigDecimal lateTimeSalary;
+    private long absentDayCount;
+    private BigDecimal absentDaySalary;
 
 
     private LocalDateTime createdAt;

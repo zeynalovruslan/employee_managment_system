@@ -27,7 +27,7 @@ public class InvoiceController {
     }
 
     @GetMapping("/employee/{employeeId}/invoices")
-    public List<RespEmployeeInvoice> getVacationsByEmployeeId
+    public List<RespEmployeeInvoice> getInvoicesByEmployeeId
             (@PathVariable @NotNull(message = "Employee id cannot be empty") Long employeeId) {
         return employeeInvoiceService.getInvoicesByEmployeeId(employeeId);
     }

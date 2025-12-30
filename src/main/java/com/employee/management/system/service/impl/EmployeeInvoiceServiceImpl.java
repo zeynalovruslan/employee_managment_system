@@ -2,6 +2,7 @@ package com.employee.management.system.service.impl;
 
 import com.employee.management.system.dto.response.RespEmployeeInvoice;
 import com.employee.management.system.entity.*;
+import com.employee.management.system.enums.CheckStatusEnum;
 import com.employee.management.system.enums.EmployeeStatusEnum;
 import com.employee.management.system.enums.RequestVacationStatusEnum;
 import com.employee.management.system.exception.BadRequestException;
@@ -43,6 +44,8 @@ public class EmployeeInvoiceServiceImpl implements EmployeeInvoiceService {
         YearMonth yearMonth = YearMonth.of(year, month);
         LocalDate startOfMonth = yearMonth.atDay(1);
         LocalDate endOfMonth = yearMonth.atEndOfMonth();
+
+
         List<Employee> employeeList = employeeRepository.findEmployeeByStatus(EmployeeStatusEnum.CREATED).orElseThrow(() -> new EmployeeNotFoundException("Employee not found"));
 
         List<DayOffDay> holidays = dayOffDayRepository.findHolidayByYearAndMonth(year, month);
@@ -50,7 +53,6 @@ public class EmployeeInvoiceServiceImpl implements EmployeeInvoiceService {
         for (Employee employee : employeeList) {
 
             boolean exists = employeeInvoiceRepository.existsByEmployeeIdAndYearAndMonth(employee.getId(), year, month);
-
             if (exists) {
                 continue;
             }
@@ -72,14 +74,19 @@ public class EmployeeInvoiceServiceImpl implements EmployeeInvoiceService {
 
             BigDecimal hourlySalary = dailySalary.divide(BigDecimal.valueOf(8), 2, RoundingMode.HALF_UP);
 
-            long monthlyOverTime = calculateMonthlyOverTime(employee.getId(), year, month);
+            BigDecimal minutelySalary = hourlySalary.divide(BigDecimal.valueOf(60), 2, RoundingMode.HALF_UP);
 
-            long monthlyLateTime = calculateMonthlyLateTime(employee.getId(), year, month);
+            long monthlyOverTime = calculateMonthlyOverTime(employee.getId(), startOfMonth, endOfMonth);
 
-            BigDecimal monthlyOverTimeSalary = hourlySalary.multiply(new BigDecimal(monthlyOverTime));
+            long monthlyLateTime = calculateMonthlyLateTime(employee.getId(), startOfMonth, endOfMonth);
 
-            BigDecimal monthlyLateTimeSalary = hourlySalary.multiply(new BigDecimal(monthlyLateTime));
+            long absentDayCount = calculateAbsentDay(employee.getId(), startOfMonth, endOfMonth);
 
+            BigDecimal absentDaySalary = dailySalary.multiply(new BigDecimal(absentDayCount));
+
+            BigDecimal monthlyOverTimeSalary = minutelySalary.multiply(new BigDecimal(monthlyOverTime));
+
+            BigDecimal monthlyLateTimeSalary = minutelySalary.multiply(new BigDecimal(monthlyLateTime));
 
             BigDecimal dailyVacationSalary = dailySalary.multiply(new BigDecimal("0.75"));
 
@@ -101,13 +108,11 @@ public class EmployeeInvoiceServiceImpl implements EmployeeInvoiceService {
                 return dailyVacationSalary.multiply(BigDecimal.valueOf(vacationDaysSet.size()));
             }).reduce(BigDecimal.ZERO, BigDecimal::add);
 
-
             BigDecimal totalSalary =
                     workingDaySalary
                             .add(vacationSalary)
                             .add(monthlyOverTimeSalary)
-                            .subtract(monthlyLateTimeSalary);
-
+                            .subtract(monthlyLateTimeSalary).add(absentDaySalary);
 
             EmployeeInvoice employeeInvoice = new EmployeeInvoice();
             employeeInvoice.setEmployee(employee);
@@ -117,17 +122,22 @@ public class EmployeeInvoiceServiceImpl implements EmployeeInvoiceService {
             employeeInvoice.setVacationSalary(vacationSalary);
             employeeInvoice.setTotalSalary(totalSalary);
             employeeInvoice.setCreatedAt(LocalDateTime.now());
-
+            employeeInvoice.setOverTime(monthlyOverTime);
+            employeeInvoice.setLateTime(monthlyLateTime);
+            employeeInvoice.setOverTimeSalary(monthlyOverTimeSalary);
+            employeeInvoice.setLateTimeSalary(monthlyLateTimeSalary);
+            employeeInvoice.setAbsentDayCount(absentDayCount);
+            employeeInvoice.setAbsentDaySalary(absentDaySalary);
 
             employeeInvoiceRepository.save(employeeInvoice);
-
         }
     }
 
     @Override
     public List<RespEmployeeInvoice> getInvoicesByEmployeeId(Long employeeId) {
 
-        List<EmployeeInvoice> invoices = employeeInvoiceRepository.findByEmployeeId(employeeId).orElseThrow(() -> new NotFoundException("Invoices not found"));
+        List<EmployeeInvoice> invoices = employeeInvoiceRepository.findByEmployeeId(employeeId).orElseThrow(()
+                -> new NotFoundException("Invoices not found"));
         return invoices.stream().map(employeeInvoiceMapper::toResponse).toList();
 
     }
@@ -141,11 +151,8 @@ public class EmployeeInvoiceServiceImpl implements EmployeeInvoiceService {
         Set<LocalDate> holidaySet = dayOffDays.stream().map(dayOffDay
                 -> LocalDate.of(dayOffDay.getYear(), dayOffDay.getMonth(), dayOffDay.getHoliday())).collect(Collectors.toSet());
 
-
         Set<LocalDate> vacationSet = requestedVacations.stream().flatMap(v -> {
-
             LocalDate start = v.getStartDay().isBefore(startOfMonth) ? startOfMonth : v.getStartDay();
-
             LocalDate end = v.getEndDay().isAfter(endOfMonth) ? endOfMonth : v.getEndDay();
             return start.datesUntil(end.plusDays(1));
         }).collect(Collectors.toSet());
@@ -171,24 +178,26 @@ public class EmployeeInvoiceServiceImpl implements EmployeeInvoiceService {
     }
 
 
-    public long calculateMonthlyOverTime(Long employeeId, int year, int month) {
+    public long calculateMonthlyOverTime(Long employeeId, LocalDate startDate, LocalDate endDate) {
 
-        List<DailyCheck> overTime = dailyCheckRepository.findOverTimeByEmployeeIdAndYearAndMonth(employeeId, year, month);
-
+        List<DailyCheck> overTime = dailyCheckRepository.findByEmployeeIdAndWorkDateBetween(employeeId, startDate, endDate);
         long totalOverTime = overTime.stream().mapToLong(DailyCheck::getOverTime).sum();
-
         return totalOverTime;
-
     }
 
 
-    public long calculateMonthlyLateTime(Long employeeId, int year, int month) {
+    public long calculateMonthlyLateTime(Long employeeId, LocalDate startDate, LocalDate endDate) {
 
-        List<DailyCheck> lateTime = dailyCheckRepository.findLateTimeByEmployeeIdAndYearAndMonth(employeeId, year, month);
-
+        List<DailyCheck> lateTime = dailyCheckRepository.findByEmployeeIdAndWorkDateBetween(employeeId, startDate, endDate);
         long totalLateTime = lateTime.stream().mapToLong(DailyCheck::getLateTime).sum();
-
         return totalLateTime;
-
     }
+
+
+    public long calculateAbsentDay(Long employeeId, LocalDate startDate, LocalDate endDate) {
+        long countAbsentDay = dailyCheckRepository.countByEmployeeIdAndStatusAndWorkDateBetween(
+                employeeId, CheckStatusEnum.ABSENT, startDate, endDate);
+        return countAbsentDay;
+    }
+
 }

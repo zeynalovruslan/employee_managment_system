@@ -2,6 +2,7 @@ package com.employee.management.system.repository;
 
 import com.employee.management.system.entity.DailyCheck;
 import com.employee.management.system.entity.Employee;
+import com.employee.management.system.enums.CheckStatusEnum;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -13,9 +14,8 @@ public interface DailyCheckRepository extends JpaRepository<DailyCheck, Long> {
 
     boolean existsDailyCheckByEmployeeAndWorkDate(Employee employee, LocalDate workDate);
 
-    List<DailyCheck> findOverTimeByEmployeeIdAndYearAndMonth(Long employeeId, int year, int month);
+    List<DailyCheck> findByEmployeeIdAndWorkDateBetween(Long employeeId, LocalDate startDate, LocalDate endDate);
 
-    List<DailyCheck> findLateTimeByEmployeeIdAndYearAndMonth(Long employeeId, int year, int month);
-
+    long countByEmployeeIdAndStatusAndWorkDateBetween(Long employeeId, CheckStatusEnum status, LocalDate startDate, LocalDate endDate);
 
 }

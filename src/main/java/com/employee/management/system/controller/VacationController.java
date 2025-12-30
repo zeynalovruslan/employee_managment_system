@@ -20,18 +20,22 @@ public class VacationController {
 
     @GetMapping("/vacations/{vacationId}")
     public RespRequestedVacation getRequestedVacationByVacationId(
-            @PathVariable @NotNull(message = "Vacation id cannot be empty") Long vacationId) {
+            @PathVariable
+            @NotNull(message = "Vacation id cannot be empty") Long vacationId) {
         return requestedVacationService.getRequestedVacationByVacationId(vacationId);
     }
 
     @GetMapping("/employees/{employeeId}/vacations")
     public List<RespRequestedVacation> getRequestedVacationListByEmployeeId(
-            @PathVariable @NotNull(message = "Employee id cannot be empty") Long employeeId) {
+            @PathVariable
+            @NotNull(message = "Employee id cannot be empty") Long employeeId) {
         return requestedVacationService.getRequestedVacationByEmployeeId(employeeId);
     }
 
     @PostMapping("/vacations")
-    public RespRequestedVacation createVacation(@RequestBody @NotNull(message = "Request day cannot be empty") ReqRequestedVacation request) {
+    public RespRequestedVacation createVacation(
+            @RequestBody
+            @NotNull(message = "Request day cannot be empty") ReqRequestedVacation request) {
         return requestedVacationService.createRequestedVacation(request);
     }
 
@@ -42,7 +46,9 @@ public class VacationController {
     }
 
     @PostMapping(("/vacation/{requestedVacationId}/calculate-pay"))
-    public RespRequestedVacation calculateVacation(@PathVariable @NotNull Long requestedVacationId) {
+    public RespRequestedVacation calculateVacation(
+            @PathVariable
+            @NotNull(message = "Requested vacation id cannot be empty") Long requestedVacationId) {
         return requestedVacationService.calculateVacationPayByVacationId(requestedVacationId);
     }
 

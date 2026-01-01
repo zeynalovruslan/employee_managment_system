@@ -21,5 +21,5 @@ public class DayOffDay {
     private String name;
     private Integer year;
     private Integer month;
-    private Integer holiday;
+    private int holiday;
 }

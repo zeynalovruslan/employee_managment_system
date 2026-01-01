@@ -1,8 +1,12 @@
 package com.employee.management.system.service.impl;
 
+import com.employee.management.system.calculator.AttendanceCalculator;
+import com.employee.management.system.calculator.SalaryCalculator;
 import com.employee.management.system.dto.response.RespEmployeeInvoice;
-import com.employee.management.system.entity.*;
-import com.employee.management.system.enums.CheckStatusEnum;
+import com.employee.management.system.entity.DayOffDay;
+import com.employee.management.system.entity.Employee;
+import com.employee.management.system.entity.EmployeeInvoice;
+import com.employee.management.system.entity.RequestedVacation;
 import com.employee.management.system.enums.EmployeeStatusEnum;
 import com.employee.management.system.enums.RequestVacationStatusEnum;
 import com.employee.management.system.exception.BadRequestException;
@@ -16,14 +20,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 
@@ -35,8 +34,8 @@ public class EmployeeInvoiceServiceImpl implements EmployeeInvoiceService {
     private final RequestedVacationRepository requestedVacationRepository;
     private final EmployeeInvoiceMapper employeeInvoiceMapper;
     private final DayOffDayRepository dayOffDayRepository;
-    private final DailyCheckRepository dailyCheckRepository;
-
+    private final SalaryCalculator salaryCalculator;
+    private final AttendanceCalculator attendanceCalculator;
 
     @Transactional
     @Override
@@ -45,8 +44,8 @@ public class EmployeeInvoiceServiceImpl implements EmployeeInvoiceService {
         LocalDate startOfMonth = yearMonth.atDay(1);
         LocalDate endOfMonth = yearMonth.atEndOfMonth();
 
-
-        List<Employee> employeeList = employeeRepository.findEmployeeByStatus(EmployeeStatusEnum.CREATED).orElseThrow(() -> new EmployeeNotFoundException("Employee not found"));
+        List<Employee> employeeList = employeeRepository.findEmployeeByStatus(EmployeeStatusEnum.CREATED).orElseThrow(()
+                -> new EmployeeNotFoundException("Employee not found"));
 
         List<DayOffDay> holidays = dayOffDayRepository.findHolidayByYearAndMonth(year, month);
 
@@ -56,148 +55,59 @@ public class EmployeeInvoiceServiceImpl implements EmployeeInvoiceService {
             if (exists) {
                 continue;
             }
-
             List<RequestedVacation> vacations = requestedVacationRepository.findRequestedVacationByEmployeeIdAndStatus(
                     employee.getId(),
                     RequestVacationStatusEnum.APPROVED);
 
-            long workingDaysCount = calculateWorkingDays(yearMonth, holidays, vacations, startOfMonth, endOfMonth);
+            long workingDaysCount = attendanceCalculator.calculateWorkingDays(yearMonth, holidays, vacations, startOfMonth, endOfMonth);
             if (workingDaysCount <= 0) {
                 throw new BadRequestException("Working days can not be zero");
             }
 
             BigDecimal baseSalary = employee.getSalary();
 
-            BigDecimal dailySalary = baseSalary.divide(new BigDecimal(workingDaysCount), 2, RoundingMode.HALF_UP);
+            BigDecimal dailySalary = salaryCalculator.calculateDailySalary(baseSalary, workingDaysCount);
 
-            BigDecimal workingDaySalary = dailySalary.multiply(new BigDecimal(workingDaysCount));
+            BigDecimal hourlySalary = salaryCalculator.calculateHourlySalary(dailySalary);
 
-            BigDecimal hourlySalary = dailySalary.divide(BigDecimal.valueOf(8), 2, RoundingMode.HALF_UP);
+            BigDecimal minutelySalary = salaryCalculator.calculateMinutelySalary(hourlySalary);
 
-            BigDecimal minutelySalary = hourlySalary.divide(BigDecimal.valueOf(60), 2, RoundingMode.HALF_UP);
+            BigDecimal workingDaySalary = salaryCalculator.calculateWorkingDaySalary(dailySalary, workingDaysCount);
 
-            long monthlyOverTime = calculateMonthlyOverTime(employee.getId(), startOfMonth, endOfMonth);
+            long monthlyOverTime = attendanceCalculator.calculateMonthlyOverTime(employee.getId(), startOfMonth, endOfMonth);
 
-            long monthlyLateTime = calculateMonthlyLateTime(employee.getId(), startOfMonth, endOfMonth);
+            long monthlyLateTime = attendanceCalculator.calculateMonthlyLateTime(employee.getId(), startOfMonth, endOfMonth);
 
-            long absentDayCount = calculateAbsentDay(employee.getId(), startOfMonth, endOfMonth);
+            long absentDayCount = attendanceCalculator.calculateAbsentDay(employee.getId(), startOfMonth, endOfMonth);
 
-            BigDecimal absentDaySalary = dailySalary.multiply(new BigDecimal(absentDayCount));
+            BigDecimal absentDaySalary = salaryCalculator.calculateAbsentDaySalary(dailySalary, absentDayCount);
 
-            BigDecimal monthlyOverTimeSalary = minutelySalary.multiply(new BigDecimal(monthlyOverTime));
+            BigDecimal monthlyOverTimeSalary = salaryCalculator.calculateOvertimeSalary(minutelySalary, monthlyOverTime);
 
-            BigDecimal monthlyLateTimeSalary = minutelySalary.multiply(new BigDecimal(monthlyLateTime));
+            BigDecimal monthlyLateTimeSalary = salaryCalculator.calculateLateTimeSalary(minutelySalary, monthlyLateTime);
 
-            BigDecimal dailyVacationSalary = dailySalary.multiply(new BigDecimal("0.75"));
+            BigDecimal dailyVacationSalary = salaryCalculator.calculateDailyVacationSalary(dailySalary);
 
-            BigDecimal vacationSalary = vacations.stream().map(v -> {
-                LocalDate vacationStart = v.getStartDay().isBefore(startOfMonth) ? startOfMonth : v.getStartDay();
-                LocalDate vacationEnd = v.getEndDay().isAfter(endOfMonth) ? endOfMonth : v.getEndDay();
-
-                Set<LocalDate> holidaySet = holidays.stream()
-                        .map(h -> LocalDate.of(year, month, h.getHoliday()))
-                        .collect(Collectors.toSet());
-                Set<LocalDate> vacationDaysSet = vacationStart.datesUntil(vacationEnd.plusDays(1))
-                        .filter(d -> {
-                            DayOfWeek dow = d.getDayOfWeek();
-                            return dow != DayOfWeek.SATURDAY &&
-                                    dow != DayOfWeek.SUNDAY &&
-                                    !holidaySet.contains(d);
-                        })
-                        .collect(Collectors.toSet());
-                return dailyVacationSalary.multiply(BigDecimal.valueOf(vacationDaysSet.size()));
-            }).reduce(BigDecimal.ZERO, BigDecimal::add);
+            BigDecimal vacationSalary = salaryCalculator.calculateVacationSalary(
+                    vacations, holidays,
+                    dailyVacationSalary
+                    , startOfMonth, endOfMonth, year, month);
 
             BigDecimal totalSalary =
-                    workingDaySalary
-                            .add(vacationSalary)
-                            .add(monthlyOverTimeSalary)
-                            .subtract(monthlyLateTimeSalary).add(absentDaySalary);
+                    salaryCalculator.calculateTotalSalary(workingDaySalary, vacationSalary,
+                            monthlyOverTimeSalary, monthlyLateTimeSalary, absentDaySalary);
 
-            EmployeeInvoice employeeInvoice = new EmployeeInvoice();
-            employeeInvoice.setEmployee(employee);
-            employeeInvoice.setYear(year);
-            employeeInvoice.setMonth(month);
-            employeeInvoice.setBaseSalary(baseSalary);
-            employeeInvoice.setVacationSalary(vacationSalary);
-            employeeInvoice.setTotalSalary(totalSalary);
-            employeeInvoice.setCreatedAt(LocalDateTime.now());
-            employeeInvoice.setOverTime(monthlyOverTime);
-            employeeInvoice.setLateTime(monthlyLateTime);
-            employeeInvoice.setOverTimeSalary(monthlyOverTimeSalary);
-            employeeInvoice.setLateTimeSalary(monthlyLateTimeSalary);
-            employeeInvoice.setAbsentDayCount(absentDayCount);
-            employeeInvoice.setAbsentDaySalary(absentDaySalary);
-
-            employeeInvoiceRepository.save(employeeInvoice);
+            attendanceCalculator.saveInvoice(employee, year, month, baseSalary,
+                    vacationSalary, totalSalary, monthlyOverTime, monthlyLateTime,
+                    monthlyOverTimeSalary, monthlyLateTimeSalary, absentDayCount, absentDaySalary);
         }
     }
 
     @Override
     public List<RespEmployeeInvoice> getInvoicesByEmployeeId(Long employeeId) {
-
         List<EmployeeInvoice> invoices = employeeInvoiceRepository.findByEmployeeId(employeeId).orElseThrow(()
                 -> new NotFoundException("Invoices not found"));
         return invoices.stream().map(employeeInvoiceMapper::toResponse).toList();
 
     }
-
-
-    public long calculateWorkingDays(YearMonth yearMonth,
-                                     List<DayOffDay> dayOffDays,
-                                     List<RequestedVacation> requestedVacations,
-                                     LocalDate startOfMonth, LocalDate endOfMonth) {
-
-        Set<LocalDate> holidaySet = dayOffDays.stream().map(dayOffDay
-                -> LocalDate.of(dayOffDay.getYear(), dayOffDay.getMonth(), dayOffDay.getHoliday())).collect(Collectors.toSet());
-
-        Set<LocalDate> vacationSet = requestedVacations.stream().flatMap(v -> {
-            LocalDate start = v.getStartDay().isBefore(startOfMonth) ? startOfMonth : v.getStartDay();
-            LocalDate end = v.getEndDay().isAfter(endOfMonth) ? endOfMonth : v.getEndDay();
-            return start.datesUntil(end.plusDays(1));
-        }).collect(Collectors.toSet());
-
-        long workingDays = 0;
-        for (int i = 1; i <= yearMonth.lengthOfMonth(); i++) {
-
-            LocalDate yearMonthDay = yearMonth.atDay(i);
-            DayOfWeek dayOfWeek = yearMonthDay.getDayOfWeek();
-
-            if (dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY) {
-                continue;
-            }
-            if (holidaySet.contains(yearMonthDay)) {
-                continue;
-            }
-            if (vacationSet.contains(yearMonthDay)) {
-                continue;
-            }
-            workingDays++;
-        }
-        return workingDays;
-    }
-
-
-    public long calculateMonthlyOverTime(Long employeeId, LocalDate startDate, LocalDate endDate) {
-
-        List<DailyCheck> overTime = dailyCheckRepository.findByEmployeeIdAndWorkDateBetween(employeeId, startDate, endDate);
-        long totalOverTime = overTime.stream().mapToLong(DailyCheck::getOverTime).sum();
-        return totalOverTime;
-    }
-
-
-    public long calculateMonthlyLateTime(Long employeeId, LocalDate startDate, LocalDate endDate) {
-
-        List<DailyCheck> lateTime = dailyCheckRepository.findByEmployeeIdAndWorkDateBetween(employeeId, startDate, endDate);
-        long totalLateTime = lateTime.stream().mapToLong(DailyCheck::getLateTime).sum();
-        return totalLateTime;
-    }
-
-
-    public long calculateAbsentDay(Long employeeId, LocalDate startDate, LocalDate endDate) {
-        long countAbsentDay = dailyCheckRepository.countByEmployeeIdAndStatusAndWorkDateBetween(
-                employeeId, CheckStatusEnum.ABSENT, startDate, endDate);
-        return countAbsentDay;
-    }
-
 }

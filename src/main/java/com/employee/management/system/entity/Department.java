@@ -5,21 +5,21 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Entity
-@Table(name = "positions")
+@Table(name = "departments")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Position {
+public class Department {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
 
-    @OneToOne(mappedBy = "position")
-    private Employee employee;
+    @OneToMany(mappedBy = "department")
+    private List<Position> positions;
 
-    @ManyToOne
-    @JoinColumn(name = "department_id", nullable = false)
-    private Department department;
 }

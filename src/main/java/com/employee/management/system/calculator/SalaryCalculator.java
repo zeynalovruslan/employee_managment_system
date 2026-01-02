@@ -1,7 +1,7 @@
 package com.employee.management.system.calculator;
 
 import com.employee.management.system.entity.DayOffDay;
-import com.employee.management.system.entity.Employee;
+import com.employee.management.system.entity.EmployeeInvoice;
 import com.employee.management.system.entity.RequestedVacation;
 import com.employee.management.system.repository.DailyCheckRepository;
 import com.employee.management.system.repository.DayOffDayRepository;
@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -24,6 +25,7 @@ public class SalaryCalculator {
     private final long DAILY_WORK_HOURS = 8;
     private final long MINUTES = 60;
     private final DayOffDayRepository dayOffDayRepository;
+    private final DailyCheckRepository dailyCheckRepository;
 
     public BigDecimal calculateWorkingDaySalary(BigDecimal dailySalary, long workingDay) {
         return dailySalary.multiply(new BigDecimal(workingDay));
@@ -35,7 +37,6 @@ public class SalaryCalculator {
     }
 
     public BigDecimal calculateHourlySalary(BigDecimal dailySalary) {
-
         return dailySalary.divide(BigDecimal.valueOf(DAILY_WORK_HOURS), 2, RoundingMode.HALF_UP);
     }
 
@@ -59,6 +60,11 @@ public class SalaryCalculator {
         return dailySalary.multiply(new BigDecimal(absentDayCount));
     }
 
+
+    public BigDecimal calculateWorkedOnDaySalary(BigDecimal dailySalary, long workedOnDayCount) {
+        return dailySalary.multiply(new BigDecimal(workedOnDayCount).multiply(BigDecimal.valueOf(2)));
+    }
+
     public BigDecimal calculateVacationSalary(List<RequestedVacation> vacations, List<DayOffDay> holidays,
                                               BigDecimal dailyVacationSalary, LocalDate startOfMonth, LocalDate endOfMonth,
                                               int year, int month) {
@@ -67,8 +73,12 @@ public class SalaryCalculator {
             LocalDate vacationStart = v.getStartDay().isBefore(startOfMonth) ? startOfMonth : v.getStartDay();
             LocalDate vacationEnd = v.getEndDay().isAfter(endOfMonth) ? endOfMonth : v.getEndDay();
 
+            if (vacationStart.isAfter(vacationEnd)) {
+                return BigDecimal.ZERO;
+            }
+
             Set<LocalDate> holidaySet = holidays.stream()
-                    .map(h -> LocalDate.of(year, month, h.getHoliday()))
+                    .map(h -> LocalDate.of(h.getYear(), h.getMonth(), h.getHoliday()))
                     .collect(Collectors.toSet());
             Set<LocalDate> vacationDaysSet = vacationStart.datesUntil(vacationEnd.plusDays(1))
                     .filter(d -> {
@@ -85,9 +95,10 @@ public class SalaryCalculator {
 
     public BigDecimal calculateTotalSalary(BigDecimal workingDaySalary, BigDecimal vacationSalary,
                                            BigDecimal monthlyOverTimeSalary, BigDecimal monthlyLateTimeSalary,
-                                           BigDecimal absentDaySalary) {
+                                           BigDecimal absentDaySalary ,BigDecimal workedHolidaySalary) {
         return workingDaySalary
                 .add(vacationSalary)
+                .add(workedHolidaySalary)
                 .add(monthlyOverTimeSalary)
                 .subtract(monthlyLateTimeSalary).add(absentDaySalary);
 

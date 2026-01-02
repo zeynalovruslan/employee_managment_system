@@ -15,6 +15,7 @@ import java.time.YearMonth;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Component
 @RequiredArgsConstructor
@@ -44,6 +45,11 @@ public class AttendanceCalculator {
         return countAbsentDay;
     }
 
+    public long calculateWorkedOnHoliday(Long employeeId, LocalDate startDate, LocalDate endDate) {
+        long workedOnHoliday = dailyCheckRepository.countByEmployeeIdAndWorkDateBetween(employeeId, startDate, endDate);
+        return workedOnHoliday;
+    }
+
 
     public long calculateWorkingDays(YearMonth yearMonth,
                                      List<DayOffDay> dayOffDays,
@@ -56,6 +62,10 @@ public class AttendanceCalculator {
         Set<LocalDate> vacationSet = requestedVacations.stream().flatMap(v -> {
             LocalDate start = v.getStartDay().isBefore(startOfMonth) ? startOfMonth : v.getStartDay();
             LocalDate end = v.getEndDay().isAfter(endOfMonth) ? endOfMonth : v.getEndDay();
+            if (start.isAfter(end)) {
+                return Stream.empty();
+            }
+
             return start.datesUntil(end.plusDays(1));
         }).collect(Collectors.toSet());
 
@@ -83,7 +93,7 @@ public class AttendanceCalculator {
     public void saveInvoice(Employee employee, int year, int month, BigDecimal baseSalary,
                             BigDecimal vacationSalary, BigDecimal totalSalary, long monthlyOverTime,
                             long monthlyLateTime, BigDecimal monthlyOverTimeSalary, BigDecimal monthlyLateTimeSalary,
-                            long absentDayCount, BigDecimal absentDaySalary) {
+                            long absentDayCount, BigDecimal absentDayPenalty, long countWorkedHoliday, BigDecimal workedHolidaySalary) {
 
         EmployeeInvoice employeeInvoice = new EmployeeInvoice();
         employeeInvoice.setEmployee(employee);
@@ -98,7 +108,9 @@ public class AttendanceCalculator {
         employeeInvoice.setOverTimeSalary(monthlyOverTimeSalary);
         employeeInvoice.setLateTimeSalary(monthlyLateTimeSalary);
         employeeInvoice.setAbsentDayCount(absentDayCount);
-        employeeInvoice.setAbsentDaySalary(absentDaySalary);
+        employeeInvoice.setAbsentDayPenalty(absentDayPenalty);
+        employeeInvoice.setCountWorkedHoliday(countWorkedHoliday);
+        employeeInvoice.setWorkedHolidaySalary(workedHolidaySalary);
 
         employeeInvoiceRepository.save(employeeInvoice);
     }

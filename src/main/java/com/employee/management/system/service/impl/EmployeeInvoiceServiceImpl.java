@@ -13,7 +13,10 @@ import com.employee.management.system.exception.BadRequestException;
 import com.employee.management.system.exception.EmployeeNotFoundException;
 import com.employee.management.system.exception.NotFoundException;
 import com.employee.management.system.mapper.EmployeeInvoiceMapper;
-import com.employee.management.system.repository.*;
+import com.employee.management.system.repository.DayOffDayRepository;
+import com.employee.management.system.repository.EmployeeInvoiceRepository;
+import com.employee.management.system.repository.EmployeeRepository;
+import com.employee.management.system.repository.RequestedVacationRepository;
 import com.employee.management.system.service.EmployeeInvoiceService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -80,13 +83,17 @@ public class EmployeeInvoiceServiceImpl implements EmployeeInvoiceService {
 
             long absentDayCount = attendanceCalculator.calculateAbsentDay(employee.getId(), startOfMonth, endOfMonth);
 
-            BigDecimal absentDaySalary = salaryCalculator.calculateAbsentDaySalary(dailySalary, absentDayCount);
+            long countWorkedOnHoliday = attendanceCalculator.calculateWorkedOnHoliday(employee.getId(), startOfMonth, endOfMonth);
+
+            BigDecimal absentDayPenalty = salaryCalculator.calculateAbsentDaySalary(dailySalary, absentDayCount);
 
             BigDecimal monthlyOverTimeSalary = salaryCalculator.calculateOvertimeSalary(minutelySalary, monthlyOverTime);
 
             BigDecimal monthlyLateTimeSalary = salaryCalculator.calculateLateTimeSalary(minutelySalary, monthlyLateTime);
 
             BigDecimal dailyVacationSalary = salaryCalculator.calculateDailyVacationSalary(dailySalary);
+
+            BigDecimal workedOnHolidaySalary = salaryCalculator.calculateWorkedOnDaySalary(dailySalary, countWorkedOnHoliday);
 
             BigDecimal vacationSalary = salaryCalculator.calculateVacationSalary(
                     vacations, holidays,
@@ -95,11 +102,12 @@ public class EmployeeInvoiceServiceImpl implements EmployeeInvoiceService {
 
             BigDecimal totalSalary =
                     salaryCalculator.calculateTotalSalary(workingDaySalary, vacationSalary,
-                            monthlyOverTimeSalary, monthlyLateTimeSalary, absentDaySalary);
+                            monthlyOverTimeSalary, monthlyLateTimeSalary, absentDayPenalty, workedOnHolidaySalary);
 
             attendanceCalculator.saveInvoice(employee, year, month, baseSalary,
                     vacationSalary, totalSalary, monthlyOverTime, monthlyLateTime,
-                    monthlyOverTimeSalary, monthlyLateTimeSalary, absentDayCount, absentDaySalary);
+                    monthlyOverTimeSalary, monthlyLateTimeSalary, absentDayCount,
+                    absentDayPenalty, countWorkedOnHoliday, workedOnHolidaySalary);
         }
     }
 

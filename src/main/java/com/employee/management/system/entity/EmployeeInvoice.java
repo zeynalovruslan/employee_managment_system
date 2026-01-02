@@ -30,9 +30,9 @@ public class EmployeeInvoice {
     private BigDecimal overTimeSalary;
     private BigDecimal lateTimeSalary;
     private long absentDayCount;
-    private BigDecimal absentDaySalary;
-
-
+    private BigDecimal absentDayPenalty;
+    private long countWorkedHoliday;
+    private BigDecimal workedHolidaySalary;
     private LocalDateTime createdAt;
 
     @UpdateTimestamp

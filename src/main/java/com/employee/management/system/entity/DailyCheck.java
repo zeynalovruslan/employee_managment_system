@@ -15,8 +15,9 @@ import java.time.LocalTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DailyCheck {
+
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private LocalTime entryTime;
@@ -25,6 +26,7 @@ public class DailyCheck {
 
     private long lateTime;
     private long overTime;
+    private long countWorkedOnHoliday;
 
 
 

@@ -20,6 +20,8 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -45,6 +47,10 @@ public class DailyCheckServiceImpl implements DailyCheckService {
 
         LocalDate workDate = LocalDate.now();
 
+        Set<LocalDate> holidays = dayOffDayRepository.findHolidayByYearAndMonth(
+                workDate.getYear(), workDate.getMonthValue()).stream().map(
+                h -> LocalDate.of(h.getYear(), h.getMonth(), h.getHoliday())).collect(Collectors.toSet());
+
         long lateMinutes = 0;
         CheckStatusEnum status = CheckStatusEnum.ON_TIME;
 
@@ -60,9 +66,17 @@ public class DailyCheckServiceImpl implements DailyCheckService {
 
         long overtimeMinutes = 0;
         if (request.getExitTime().isAfter(endWorkTime)) {
-            overtimeMinutes = Duration.between(endWorkTime, request.getExitTime()).toMinutes();
+            overtimeMinutes += Duration.between(endWorkTime, request.getExitTime()).toMinutes();
+
+        }
+
+        long workedOnHoliday = 0;
+        if (holidays.contains(workDate)
+                || workDate.equals(DayOfWeek.SATURDAY)
+                || workDate.equals(DayOfWeek.SUNDAY)) {
 
 
+            workedOnHoliday++ ;
         }
 
         dailyCheck.setEmployee(employee);
@@ -73,10 +87,9 @@ public class DailyCheckServiceImpl implements DailyCheckService {
         dailyCheck.setEntryTime(request.getEntryTime());
         dailyCheck.setExitTime(request.getExitTime());
         dailyCheck.setWorkDate(workDate);
+        dailyCheck.setCountWorkedOnHoliday(workedOnHoliday);
 
         dailyCheckRepository.save(dailyCheck);
-
-
     }
 
     @Transactional

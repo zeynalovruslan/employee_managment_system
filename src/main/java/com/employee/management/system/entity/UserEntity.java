@@ -33,4 +33,6 @@ public class UserEntity {
     private Employee employee;
 
 
+    private boolean mustChangePassword = true;
+
 }

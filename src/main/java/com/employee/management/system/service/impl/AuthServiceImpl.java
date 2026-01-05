@@ -13,7 +13,7 @@ import com.employee.management.system.repository.RoleRepository;
 import com.employee.management.system.repository.UserRepository;
 import com.employee.management.system.service.AuthService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +23,9 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
+
+    @Value("${login.first-password}")
+    private  String firstLoginPassword;
 
     private final EmployeeRepository employeeRepository;
     private final PasswordEncoder passwordEncoder;
@@ -34,7 +37,6 @@ public class AuthServiceImpl implements AuthService {
 
         Employee employee = employeeRepository.findEmployeeByIdAndStatus(
                 request.getEmployeeId(), EmployeeStatusEnum.CREATED).orElseThrow(() -> new EmployeeNotFoundException("Employee not found"));
-
 
         boolean existsEmployee = employeeRepository.existsById(employee.getId());
         if (existsEmployee) {
@@ -52,15 +54,53 @@ public class AuthServiceImpl implements AuthService {
 
         UserEntity user = new UserEntity();
         user.setUsername(request.getUsername());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setPassword(passwordEncoder.encode(firstLoginPassword));
         user.setEmployee(employee);
         user.setRoles(roles);
+        user.setMustChangePassword(true);
 
         userRepository.save(user);
     }
 
 
     public void loginUser(String username, String password) {
+
+        UserEntity user = userRepository.findByUsername(username).orElseThrow(()
+                -> new NotFoundException("User not found"));
+
+        if (!passwordEncoder.matches(password, user.getPassword())){
+            throw new BadRequestException("Wrong password");
+        }
+
+        if (user.isMustChangePassword()){
+            throw new BadRequestException("You must change your password before login");
+        }
+
+
+    }
+
+    public void changePasswordForFirstLogin(String newPassword , String userName) {
+
+        UserEntity user = userRepository.findByUsername(userName).orElseThrow(()
+                -> new NotFoundException("User not found"));
+
+        if (!user.isMustChangePassword()){
+            throw new BadRequestException("Password already changed");
+        }
+
+
+        if (passwordEncoder.matches(newPassword, user.getPassword())) {
+            throw new BadRequestException("The password cannot be the same as the first password.");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setMustChangePassword(false);
+
+        Employee employee = user.getEmployee();
+        employee.setStatus(EmployeeStatusEnum.ACTIVE);
+
+        employeeRepository.save(employee);
+        userRepository.save(user);
 
 
 

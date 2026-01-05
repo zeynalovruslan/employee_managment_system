@@ -72,7 +72,6 @@ public class SalaryCalculator {
         BigDecimal vacationSalary = vacations.stream().map(v -> {
             LocalDate vacationStart = v.getStartDay().isBefore(startOfMonth) ? startOfMonth : v.getStartDay();
             LocalDate vacationEnd = v.getEndDay().isAfter(endOfMonth) ? endOfMonth : v.getEndDay();
-
             if (vacationStart.isAfter(vacationEnd)) {
                 return BigDecimal.ZERO;
             }

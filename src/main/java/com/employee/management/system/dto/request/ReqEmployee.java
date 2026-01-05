@@ -36,6 +36,8 @@ public class ReqEmployee {
     @Positive(message = "Age must be positive")
     private Integer age;
 
+    private String position;
+
     @Positive(message = "Vacation is must be positive")
     private Long totalVacation;
 

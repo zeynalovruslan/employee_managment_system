@@ -28,7 +28,6 @@ import java.time.YearMonth;
 import java.util.List;
 
 @Service
-
 @RequiredArgsConstructor
 public class EmployeeInvoiceServiceImpl implements EmployeeInvoiceService {
 

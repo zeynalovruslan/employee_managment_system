@@ -3,6 +3,7 @@ package com.employee.management.system.entity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Entity
@@ -16,6 +17,7 @@ public class Position {
     private Long id;
     private String name;
 
+    @EqualsAndHashCode.Exclude
     @OneToOne(mappedBy = "position")
     private Employee employee;
 

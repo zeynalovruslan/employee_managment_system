@@ -1,5 +1,8 @@
 package com.employee.management.system.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum CheckStatusEnum {
 
     ON_TIME("EMPLOYEE ARRIVED ON TIME"),

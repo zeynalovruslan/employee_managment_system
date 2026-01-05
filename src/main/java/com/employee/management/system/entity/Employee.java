@@ -2,9 +2,7 @@ package com.employee.management.system.entity;
 
 import com.employee.management.system.enums.EmployeeStatusEnum;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -45,9 +43,12 @@ public class Employee {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @OneToOne
     @JoinColumn(name = "position_id")
     private Position position;
+
 
     @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RequestedVacation> requestedVacations;
@@ -57,6 +58,11 @@ public class Employee {
 
     @OneToMany(mappedBy = "employee" ,cascade =CascadeType.ALL )
     private List <DailyCheck> dailyCheck;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToOne(mappedBy = "employee")
+    private UserEntity user;
 
 
 }

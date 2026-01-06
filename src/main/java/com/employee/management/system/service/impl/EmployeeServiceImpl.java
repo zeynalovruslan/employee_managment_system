@@ -3,13 +3,20 @@ package com.employee.management.system.service.impl;
 import com.employee.management.system.dto.request.ReqEmployee;
 import com.employee.management.system.dto.response.RespEmployee;
 import com.employee.management.system.entity.Employee;
+import com.employee.management.system.entity.UserEntity;
 import com.employee.management.system.enums.EmployeeStatusEnum;
+import com.employee.management.system.enums.RoleNameEnum;
 import com.employee.management.system.exception.EmployeeNotFoundException;
 import com.employee.management.system.mapper.EmployeeMapper;
 import com.employee.management.system.repository.EmployeeRepository;
+import com.employee.management.system.repository.UserRepository;
 import com.employee.management.system.service.EmployeeService;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,6 +28,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     private final EmployeeRepository employeeRepository;
     private final EmployeeMapper employeeMapper;
+    private final UserRepository userRepository;
 
 
     @Override
@@ -66,5 +74,15 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     }
 
+
+    @PreAuthorize("@departmentSecurity.isDirectorOfDepartment(#departmentId)")
+    public List<RespEmployee> getEmployeeListByDepartmentId(@NonNull Long departmentId) {
+
+        List<Employee> employeeList = employeeRepository.findEmployeeByDepartmentIdAndStatus(departmentId, EmployeeStatusEnum.ACTIVE).orElseThrow(()
+                -> new EmployeeNotFoundException("Employee not found"));
+
+        return employeeList.stream().map(employeeMapper::toResponse).toList();
+
+    }
 
 }

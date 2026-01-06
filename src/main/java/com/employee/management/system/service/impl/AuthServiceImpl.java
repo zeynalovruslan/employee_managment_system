@@ -5,6 +5,7 @@ import com.employee.management.system.entity.Employee;
 import com.employee.management.system.entity.Role;
 import com.employee.management.system.entity.UserEntity;
 import com.employee.management.system.enums.EmployeeStatusEnum;
+import com.employee.management.system.enums.RoleNameEnum;
 import com.employee.management.system.exception.BadRequestException;
 import com.employee.management.system.exception.EmployeeNotFoundException;
 import com.employee.management.system.exception.NotFoundException;
@@ -14,6 +15,7 @@ import com.employee.management.system.repository.UserRepository;
 import com.employee.management.system.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -24,13 +26,12 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
-    @Value("${login.first-password}")
-    private  String firstLoginPassword;
-
     private final EmployeeRepository employeeRepository;
     private final PasswordEncoder passwordEncoder;
     private final RoleRepository roleRepository;
     private final UserRepository userRepository;
+    @Value("${login.first-password}")
+    private String firstLoginPassword;
 
     @Override
     public void createUserForEmployee(ReqUser request) {
@@ -38,7 +39,7 @@ public class AuthServiceImpl implements AuthService {
         Employee employee = employeeRepository.findEmployeeByIdAndStatus(
                 request.getEmployeeId(), EmployeeStatusEnum.CREATED).orElseThrow(() -> new EmployeeNotFoundException("Employee not found"));
 
-        boolean existsEmployee = employeeRepository.existsById(employee.getId());
+        boolean existsEmployee = userRepository.existsByEmployee(employee);
         if (existsEmployee) {
             throw new BadRequestException("Employee already exists");
         }
@@ -48,9 +49,20 @@ public class AuthServiceImpl implements AuthService {
             throw new BadRequestException("Username already exists");
         }
 
-        Set<Role> roles = request.getRoleName().stream().map(roleName -> roleRepository.
-                findByRoleName(roleName.toUpperCase()).orElseThrow(()
-                        -> new NotFoundException("Role not found"))).collect(Collectors.toSet());
+        Set<Role> roles = request.getRoleName().stream()
+                .map(roleName -> {
+                    RoleNameEnum enumRole;
+                    try {
+                        enumRole = RoleNameEnum.valueOf(roleName.toUpperCase());
+                    } catch (IllegalArgumentException e) {
+                        throw new NotFoundException("Invalid role name: " + roleName);
+                    }
+
+                    return roleRepository.findByRoleName(enumRole)
+                            .orElseThrow(() -> new NotFoundException("Role not found"));
+                })
+                .collect(Collectors.toSet());
+
 
         UserEntity user = new UserEntity();
         user.setUsername(request.getUsername());
@@ -62,29 +74,35 @@ public class AuthServiceImpl implements AuthService {
         userRepository.save(user);
     }
 
-
+    @Override
     public void loginUser(String username, String password) {
 
         UserEntity user = userRepository.findByUsername(username).orElseThrow(()
                 -> new NotFoundException("User not found"));
 
-        if (!passwordEncoder.matches(password, user.getPassword())){
+        if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new BadRequestException("Wrong password");
         }
 
-        if (user.isMustChangePassword()){
+        if (user.isMustChangePassword()) {
             throw new BadRequestException("You must change your password before login");
         }
 
 
     }
 
-    public void changePasswordForFirstLogin(String newPassword , String userName) {
+    @Override
+    public void changePasswordForFirstLogin(String newPassword) {
 
-        UserEntity user = userRepository.findByUsername(userName).orElseThrow(()
+        String username = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        UserEntity user = userRepository.findByUsername(username).orElseThrow(()
                 -> new NotFoundException("User not found"));
 
-        if (!user.isMustChangePassword()){
+        if (!user.isMustChangePassword()) {
             throw new BadRequestException("Password already changed");
         }
 
@@ -101,8 +119,6 @@ public class AuthServiceImpl implements AuthService {
 
         employeeRepository.save(employee);
         userRepository.save(user);
-
-
 
     }
 

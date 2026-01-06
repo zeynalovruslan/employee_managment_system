@@ -6,4 +6,8 @@ public interface AuthService {
 
     void createUserForEmployee(ReqUser request);
 
+    void loginUser(String username, String password);
+
+    void changePasswordForFirstLogin(String newPassword);
+
 }

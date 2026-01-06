@@ -24,6 +24,6 @@ public class Role {
     private RoleNameEnum roleName;
 
     @ManyToMany(mappedBy = "roles")
-    @JsonIgnore // Prevents infinite recursion during JSON serialization
+    @JsonIgnore
     private Set<UserEntity> users = new HashSet<>();
 }

@@ -4,9 +4,7 @@ import com.employee.management.system.dto.request.ReqUser;
 import com.employee.management.system.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
 @RestController
@@ -15,9 +13,19 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping
-    public void createUser(ReqUser reqUser) {
+    public void createUser(@RequestBody ReqUser reqUser) {
         authService.createUserForEmployee(reqUser);
     }
 
+    @PostMapping("/login")
+    public void login(@RequestParam String username,
+                      @RequestParam String password) {
+        authService.loginUser(username,password);
+    }
+
+    @PutMapping("/change-password")
+    public void changePassword(@RequestParam String password){
+        authService.changePasswordForFirstLogin(password);
+    }
 
 }

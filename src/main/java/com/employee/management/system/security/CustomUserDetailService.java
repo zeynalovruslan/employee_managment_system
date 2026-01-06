@@ -4,6 +4,8 @@ import com.employee.management.system.entity.UserEntity;
 import com.employee.management.system.exception.NotFoundException;
 import com.employee.management.system.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
@@ -28,7 +30,7 @@ public class CustomUserDetailService implements UserDetailsService {
                 -> new NotFoundException("User not found"));
 
         Set<GrantedAuthority> grantedAuthorities = user.getRoles().stream().map(
-                role -> new SimpleGrantedAuthority("ROLE_" + role.getRoleName())).collect(Collectors.toSet());
+                role -> new SimpleGrantedAuthority("ROLE_" + role.getRoleName().name())).collect(Collectors.toSet());
 
         return new User(user.getUsername(),
                 user.getPassword(),

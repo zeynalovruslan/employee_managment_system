@@ -30,6 +30,7 @@ public class EmployeeController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public RespEmployee addEmployee(@RequestBody @Valid ReqEmployee request) {
         return employeeService.createEmployee(request);
 

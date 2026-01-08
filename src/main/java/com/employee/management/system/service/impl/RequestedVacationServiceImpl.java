@@ -15,6 +15,7 @@ import com.employee.management.system.repository.RequestedVacationRepository;
 import com.employee.management.system.service.RequestedVacationService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -38,6 +39,7 @@ public class RequestedVacationServiceImpl implements RequestedVacationService {
     }
 
     @Override
+    @PreAuthorize("@userSecurity.isOwner(#employeeId)")
     public List<RespRequestedVacation> getRequestedVacationByEmployeeId(Long employeeId) {
         List<RequestedVacation> vacations = requestedVacationRepository.findRequestedVacationByEmployeeId(employeeId);
         return vacations.stream().map(requestedVacationMapper::toResponse).toList();

@@ -1,5 +1,6 @@
 package com.employee.management.system.entity;
 
+import com.employee.management.system.audit.Auditable;
 import com.employee.management.system.enums.EmployeeStatusEnum;
 import jakarta.persistence.*;
 import lombok.*;
@@ -18,7 +19,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 
-public class Employee {
+public class Employee extends Auditable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -37,18 +38,12 @@ public class Employee {
     private Integer age;
     private Long totalVacation;
     private Long usingVacation;
-    @CreationTimestamp
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @OneToOne
-    @JoinColumn(name = "position_id")
+    @ManyToOne
+    @JoinColumn(name = "position_id", nullable = false)
     private Position position;
-
 
     @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RequestedVacation> requestedVacations;

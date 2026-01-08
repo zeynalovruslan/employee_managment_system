@@ -9,5 +9,4 @@ public interface AuthService {
     void loginUser(String username, String password);
 
     void changePasswordForFirstLogin(String newPassword);
-
 }

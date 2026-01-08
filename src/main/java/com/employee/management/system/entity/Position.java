@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Entity
 @Table(name = "positions")
 @Data
@@ -17,9 +19,8 @@ public class Position {
     private Long id;
     private String name;
 
-    @EqualsAndHashCode.Exclude
-    @OneToOne(mappedBy = "position")
-    private Employee employee;
+    @OneToMany(mappedBy = "position")
+    private List<Employee> employees;
 
     @ManyToOne
     @JoinColumn(name = "department_id", nullable = false)

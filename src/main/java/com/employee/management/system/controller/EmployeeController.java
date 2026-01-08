@@ -1,7 +1,7 @@
 package com.employee.management.system.controller;
 
-import com.employee.management.system.dto.response.RespEmployee;
 import com.employee.management.system.dto.request.ReqEmployee;
+import com.employee.management.system.dto.response.RespEmployee;
 import com.employee.management.system.service.EmployeeService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -30,7 +30,7 @@ public class EmployeeController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('ADMIN')")
     public RespEmployee addEmployee(@RequestBody @Valid ReqEmployee request) {
         return employeeService.createEmployee(request);
 
@@ -45,6 +45,12 @@ public class EmployeeController {
     @DeleteMapping("/{id}")
     public void deleteEmployeeById(@PathVariable @NotNull Long id) {
         employeeService.deleteEmployee(id);
+    }
+
+
+    @GetMapping("/{departmentId}/department-employees")
+    public List<RespEmployee> getEmployeeListByDepartmentId(@PathVariable Long departmentId) {
+        return employeeService.getEmployeeListByDepartmentId(departmentId);
     }
 }
 

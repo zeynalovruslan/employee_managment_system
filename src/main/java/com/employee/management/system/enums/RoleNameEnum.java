@@ -7,8 +7,8 @@ public enum RoleNameEnum {
 
     ADMIN("ADMIN"),
     HR("HR"),
-    Employee("EMPLOYEE"),
-    Department_Director("DEPARTMENT_DIRECTOR");
+    EMPLOYEE("EMPLOYEE"),
+    DEPARTMENT_DIRECTOR("DEPARTMENT_DIRECTOR");
 
     private final String value;
 

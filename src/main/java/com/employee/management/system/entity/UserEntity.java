@@ -3,7 +3,7 @@ package com.employee.management.system.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -32,6 +32,9 @@ public class UserEntity {
     @JoinColumn(name = "employee_id", unique = true)
     private Employee employee;
 
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Notification> notification;
 
     private boolean mustChangePassword = true;
 

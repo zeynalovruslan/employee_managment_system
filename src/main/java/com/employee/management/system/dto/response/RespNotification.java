@@ -11,10 +11,8 @@ import java.time.LocalDateTime;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ErrorResponse {
-
+public class RespNotification {
     private String message;
-    private int status;
-    private LocalDateTime timestamp;
-
+    private LocalDateTime createdAt;
+    private Long userId;
 }

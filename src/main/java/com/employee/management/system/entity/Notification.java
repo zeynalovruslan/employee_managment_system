@@ -20,8 +20,10 @@ public class Notification {
     private Long id;
 
     private String message;
-
-    private boolean read;
+    private boolean isRead = false;
+    private Long totalNotificationCount;
+    private Long unreadNotificationCount;
+    private String token;
 
     @CreationTimestamp
     private LocalDateTime createdAt;

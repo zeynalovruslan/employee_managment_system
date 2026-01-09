@@ -1,10 +1,7 @@
 package com.employee.management.system.calculator;
 
 import com.employee.management.system.entity.DayOffDay;
-import com.employee.management.system.entity.EmployeeInvoice;
 import com.employee.management.system.entity.RequestedVacation;
-import com.employee.management.system.repository.DailyCheckRepository;
-import com.employee.management.system.repository.DayOffDayRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -12,7 +9,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.YearMonth;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -24,8 +20,6 @@ public class SalaryCalculator {
     private final double VACATION_PERCENT = 0.75;
     private final long DAILY_WORK_HOURS = 8;
     private final long MINUTES = 60;
-    private final DayOffDayRepository dayOffDayRepository;
-    private final DailyCheckRepository dailyCheckRepository;
 
     public BigDecimal calculateWorkingDaySalary(BigDecimal dailySalary, long workingDay) {
         return dailySalary.multiply(new BigDecimal(workingDay));
@@ -52,11 +46,11 @@ public class SalaryCalculator {
         return minutelySalary.multiply(new BigDecimal(monthlyOverTime));
     }
 
-    public BigDecimal calculateLateTimeSalary(BigDecimal minutelySalary, long monthlyLateTime) {
+    public BigDecimal calculateLateTimePenalty(BigDecimal minutelySalary, long monthlyLateTime) {
         return minutelySalary.multiply(new BigDecimal(monthlyLateTime));
     }
 
-    public BigDecimal calculateAbsentDaySalary(BigDecimal dailySalary, long absentDayCount) {
+    public BigDecimal calculateAbsentDayPenalty(BigDecimal dailySalary, long absentDayCount) {
         return dailySalary.multiply(new BigDecimal(absentDayCount));
     }
 
@@ -66,8 +60,7 @@ public class SalaryCalculator {
     }
 
     public BigDecimal calculateVacationSalary(List<RequestedVacation> vacations, List<DayOffDay> holidays,
-                                              BigDecimal dailyVacationSalary, LocalDate startOfMonth, LocalDate endOfMonth,
-                                              int year, int month) {
+                                              BigDecimal dailyVacationSalary, LocalDate startOfMonth, LocalDate endOfMonth) {
 
         BigDecimal vacationSalary = vacations.stream().map(v -> {
             LocalDate vacationStart = v.getStartDay().isBefore(startOfMonth) ? startOfMonth : v.getStartDay();

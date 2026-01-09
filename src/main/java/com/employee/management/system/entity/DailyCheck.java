@@ -23,17 +23,12 @@ public class DailyCheck {
     private LocalTime entryTime;
     private LocalTime exitTime;
     private LocalDate workDate;
-
     private long lateTime;
     private long overTime;
     private long countWorkedOnHoliday;
 
-
-
     @Enumerated(EnumType.STRING)
     private CheckStatusEnum status;
-
-
 
     @ManyToOne
     @JoinColumn(name = "employee_id")

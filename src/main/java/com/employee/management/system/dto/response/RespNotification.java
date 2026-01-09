@@ -15,4 +15,7 @@ public class RespNotification {
     private String message;
     private LocalDateTime createdAt;
     private Long userId;
+    private boolean read;
+    private Long totalNotificationCount;
+    private Long unreadNotificationCount;
 }

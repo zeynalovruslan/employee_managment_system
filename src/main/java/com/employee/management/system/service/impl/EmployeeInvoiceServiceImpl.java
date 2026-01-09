@@ -84,11 +84,11 @@ public class EmployeeInvoiceServiceImpl implements EmployeeInvoiceService {
 
             long countWorkedOnHoliday = attendanceCalculator.calculateWorkedOnHoliday(employee.getId(), startOfMonth, endOfMonth);
 
-            BigDecimal absentDayPenalty = salaryCalculator.calculateAbsentDaySalary(dailySalary, absentDayCount);
+            BigDecimal absentDayPenalty = salaryCalculator.calculateAbsentDayPenalty(dailySalary, absentDayCount);
 
             BigDecimal monthlyOverTimeSalary = salaryCalculator.calculateOvertimeSalary(minutelySalary, monthlyOverTime);
 
-            BigDecimal monthlyLateTimeSalary = salaryCalculator.calculateLateTimeSalary(minutelySalary, monthlyLateTime);
+            BigDecimal monthlyLateTimeSalary = salaryCalculator.calculateLateTimePenalty(minutelySalary, monthlyLateTime);
 
             BigDecimal dailyVacationSalary = salaryCalculator.calculateDailyVacationSalary(dailySalary);
 
@@ -97,7 +97,7 @@ public class EmployeeInvoiceServiceImpl implements EmployeeInvoiceService {
             BigDecimal vacationSalary = salaryCalculator.calculateVacationSalary(
                     vacations, holidays,
                     dailyVacationSalary
-                    , startOfMonth, endOfMonth, year, month);
+                    , startOfMonth, endOfMonth);
 
             BigDecimal totalSalary =
                     salaryCalculator.calculateTotalSalary(workingDaySalary, vacationSalary,

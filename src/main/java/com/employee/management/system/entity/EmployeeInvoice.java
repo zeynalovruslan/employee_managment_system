@@ -1,5 +1,6 @@
 package com.employee.management.system.entity;
 
+import com.employee.management.system.audit.Auditable;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,7 +15,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class EmployeeInvoice {
+public class EmployeeInvoice extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,18 +26,14 @@ public class EmployeeInvoice {
     private BigDecimal totalSalary;
     private BigDecimal vacationSalary;
     private BigDecimal baseSalary;
-    private long overTime;
-    private long lateTime;
     private BigDecimal overTimeSalary;
     private BigDecimal lateTimeSalary;
-    private long absentDayCount;
     private BigDecimal absentDayPenalty;
-    private long countWorkedHoliday;
     private BigDecimal workedHolidaySalary;
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
+    private long overTime;
+    private long lateTime;
+    private long countWorkedHoliday;
+    private long absentDayCount;
 
     @ManyToOne
     @JoinColumn(name = "employee_id")

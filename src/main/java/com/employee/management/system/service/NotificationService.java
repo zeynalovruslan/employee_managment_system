@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface NotificationService {
 
-    void createNotification(UserEntity user, String message);
+    void createNotification(UserEntity sender, Long employeeUserId, String message);
 
     List<RespNotification> getAllNotificationByUserId(Long userId);
 

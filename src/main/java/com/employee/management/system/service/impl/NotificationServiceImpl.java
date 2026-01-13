@@ -24,14 +24,20 @@ public class NotificationServiceImpl implements NotificationService {
     private final UserRepository userRepository;
     private final MailService mailService;
 
+
     @Override
-    public void createNotification(UserEntity user, String message) {
+    public void createNotification(UserEntity sender, Long employeeUserId, String message) {
+
+        UserEntity user = userRepository.findById(employeeUserId).orElseThrow(() -> new NotFoundException("User not found"));
+
+
         Notification notification = new Notification();
-        notification.setUser(user);
+        notification.getSender().setId(sender.getId());
         notification.setMessage(message);
         notification.setRead(false);
         notification.setToken(UUID.randomUUID().toString());
         notification.setCreatedAt(LocalDateTime.now());
+        notification.setReceiver(user);
 
         notificationRepository.save(notification);
 
@@ -45,11 +51,11 @@ public class NotificationServiceImpl implements NotificationService {
         UserEntity user = userRepository.findById(userId).orElseThrow(()
                 -> new NotFoundException("User not found"));
 
-        Long totalNotifications = notificationRepository.countByUserId(userId);
+        Long totalNotifications = notificationRepository.countByReceiver_Id(userId);
 
-        Long unreadNotifications= notificationRepository.countByUserIdAndIsReadFalse(userId);
+        Long unreadNotifications = notificationRepository.countByReceiver_IdAndIsReadFalse(userId);
 
-        List<RespNotification> notificationList = notificationRepository.findByUserId(user.getId()).stream().map(notification -> {
+        List<RespNotification> notificationList = notificationRepository.findByReceiver_Id(user.getId()).stream().map(notification -> {
 
             RespNotification respNotification = new RespNotification();
             respNotification.setMessage(notification.getMessage());
@@ -71,9 +77,9 @@ public class NotificationServiceImpl implements NotificationService {
         UserEntity user = userRepository.findById(userId).orElseThrow(()
                 -> new NotFoundException("User not found"));
 
-        Long unreadNotifications= notificationRepository.countByUserIdAndIsReadFalse(userId);
+        Long unreadNotifications = notificationRepository.countByReceiver_IdAndIsReadFalse(userId);
 
-        List<RespNotification> unreadNotificationList = notificationRepository.findByUserIdAndIsReadFalse(
+        List<RespNotification> unreadNotificationList = notificationRepository.findByReceiver_IdAndIsReadFalse(
                 user.getId()).stream().map(notification ->
         {
             RespNotification respNotification = new RespNotification();
@@ -91,22 +97,21 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public void markAsReadFromEmail(Long notificationId, String token){
+    public void markAsReadFromEmail(Long notificationId, String token) {
 
         Notification notification = notificationRepository.findById(notificationId).orElseThrow(()
                 -> new NotFoundException("Notification not found"));
 
-        if (!notification.getToken().equals(token)){
+        if (notification.getToken() == null || !notification.getToken().equals(token)) {
             throw new BadRequestException("Invalid token");
         }
 
-        if (!notification.isRead()){
+
+        if (!notification.isRead()) {
             notification.setRead(true);
             notificationRepository.save(notification);
         }
     }
-
-
 
 
 }

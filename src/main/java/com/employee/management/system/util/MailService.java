@@ -21,26 +21,28 @@ public class MailService {
     }
 
     public void sendMail(Notification notification) {
-
-        String link = "https://api.company.com/notifications/read/"
+        String link = "http://localhost:9595/api/notification/read/"
                 + notification.getId()
                 + "?token="
                 + notification.getToken();
 
         String body = """
-                Hello %s,
+            Hello %s,
 
-                %s
+            %s
 
-                View details:
-                %s
-                """.formatted(
-                notification.getUser().getUsername(),
+            View details:
+            %s
+            """.formatted(
+                notification.getReceiver().getEmployee().getName() + " "
+                        + notification.getReceiver().getEmployee().getSurname(),
                 notification.getMessage(),
                 link);
 
-        send(notification.getUser().getEmployee().getMailAddress(), "New Notification", body);
-
+        send(notification.getReceiver().getEmployee().getMailAddress(),
+                "New notification from employee management system",
+                body);
     }
+
 
 }

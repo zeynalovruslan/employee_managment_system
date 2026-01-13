@@ -10,13 +10,13 @@ import java.util.Optional;
 @Repository
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
 
-    List<Notification> findByUserId(Long userId);
+    List<Notification> findByReceiver_Id(Long userId);
 
-    List<Notification> findByUserIdAndIsReadFalse(Long userId);
+    List<Notification> findByReceiver_IdAndIsReadFalse(Long userId);
 
-    Long countByUserIdAndIsReadFalse(Long userId);
+    Long countByReceiver_IdAndIsReadFalse(Long userId);
 
-    Long countByUserId(Long userId);
+    Long countByReceiver_Id(Long userId);
 
     Optional<Notification> findById(Long notificationId);
 }

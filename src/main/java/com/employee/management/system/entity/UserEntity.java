@@ -2,7 +2,9 @@ package com.employee.management.system.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.security.core.GrantedAuthority;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -33,8 +35,11 @@ public class UserEntity {
     private Employee employee;
 
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Notification> notification;
+    @OneToMany(mappedBy = "sender")
+    private Set<Notification> sentNotifications = new HashSet<>();
+
+    @OneToMany(mappedBy = "receiver")
+    private Set<Notification> receivedNotifications = new HashSet<>();
 
     private boolean mustChangePassword = true;
 

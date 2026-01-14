@@ -4,6 +4,7 @@ import com.employee.management.system.dto.request.ReqRequestedVacation;
 import com.employee.management.system.dto.response.RespRequestedVacation;
 import com.employee.management.system.entity.Employee;
 import com.employee.management.system.entity.RequestedVacation;
+import com.employee.management.system.entity.UserEntity;
 import com.employee.management.system.enums.EmployeeStatusEnum;
 import com.employee.management.system.enums.RequestVacationStatusEnum;
 import com.employee.management.system.exception.BadRequestException;
@@ -12,10 +13,13 @@ import com.employee.management.system.exception.NotFoundException;
 import com.employee.management.system.mapper.RequestedVacationMapper;
 import com.employee.management.system.repository.EmployeeRepository;
 import com.employee.management.system.repository.RequestedVacationRepository;
+import com.employee.management.system.repository.UserRepository;
+import com.employee.management.system.service.NotificationService;
 import com.employee.management.system.service.RequestedVacationService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -30,6 +34,8 @@ public class RequestedVacationServiceImpl implements RequestedVacationService {
     private final EmployeeRepository employeeRepository;
     private final RequestedVacationRepository requestedVacationRepository;
     private final RequestedVacationMapper requestedVacationMapper;
+    private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     @Override
     public RespRequestedVacation getRequestedVacationByVacationId(Long vacationId) {
@@ -47,8 +53,13 @@ public class RequestedVacationServiceImpl implements RequestedVacationService {
 
 
     @Override
-    public RespRequestedVacation createRequestedVacation(ReqRequestedVacation request) {
-        Employee employee = employeeRepository.findEmployeeByIdAndStatus(request.getEmployeeId(), EmployeeStatusEnum.CREATED).orElseThrow(
+    public RespRequestedVacation createRequestedVacation(ReqRequestedVacation request, Authentication authentication) {
+
+        String username = authentication.getName();
+
+        UserEntity user = userRepository.findByUsername(username).orElseThrow(() -> new NotFoundException("User is not Found"));
+
+        Employee employee = employeeRepository.findByUser_IdAndStatus(user.getId(), EmployeeStatusEnum.CREATED).orElseThrow(
                 () -> new EmployeeNotFoundException("Employee is not found"));
 
         Long totalDay = ChronoUnit.DAYS.between(request.getStartDay(), request.getEndDay()) + 1;
@@ -93,13 +104,21 @@ public class RequestedVacationServiceImpl implements RequestedVacationService {
         if (employee.getUsingVacation() == null) {
             employee.setUsingVacation(0L);
         }
+
         requestedVacationRepository.save(requestedVacation);
+
+//        notificationService.createNotification(); -- deyisiklik edib employeeden hr -a notification gondermek olar vacation muracieti ile bagli
 
         return requestedVacationMapper.toResponse(requestedVacation);
     }
 
     @Override
-    public boolean updatedRequestedVacationStatus(Long requestedVacationId, ReqRequestedVacation request) {
+    public boolean updatedRequestedVacationStatus(Long requestedVacationId,
+                                                  ReqRequestedVacation request,
+                                                  Authentication authentication) {
+
+        UserEntity user = userRepository.findByUsername(authentication.getName()).orElseThrow(()
+                -> new NotFoundException("User is not Found"));
 
         RequestedVacation requestedVacation = requestedVacationRepository.findRequestedVacationByIdAndStatus(requestedVacationId,
                 RequestVacationStatusEnum.PENDING).orElseThrow(()
@@ -108,8 +127,8 @@ public class RequestedVacationServiceImpl implements RequestedVacationService {
         if (request.getStatus().equals(RequestVacationStatusEnum.PENDING)) {
             throw new BadRequestException("The request you sent is the same as the status in the system");
         }
-
         Employee employee = requestedVacation.getEmployee();
+
 
         if (request.getStatus().equals(RequestVacationStatusEnum.APPROVED)) {
             Long result = employee.getTotalVacation() - requestedVacation.getRequestDay();
@@ -118,6 +137,7 @@ public class RequestedVacationServiceImpl implements RequestedVacationService {
             employee.setTotalVacation(result);
         }
 
+        notificationService.createNotification(user,employee.getId(),request.getMessage());
         requestedVacation.setStatus(request.getStatus());
 
         requestedVacationRepository.save(requestedVacation);

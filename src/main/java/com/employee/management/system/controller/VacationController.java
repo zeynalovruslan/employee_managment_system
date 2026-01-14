@@ -5,6 +5,7 @@ import com.employee.management.system.dto.response.RespRequestedVacation;
 import com.employee.management.system.service.RequestedVacationService;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,14 +36,18 @@ public class VacationController {
     @PostMapping("/vacations")
     public RespRequestedVacation createVacation(
             @RequestBody
-            @NotNull(message = "Request day cannot be empty") ReqRequestedVacation request) {
-        return requestedVacationService.createRequestedVacation(request);
+            @NotNull(message = "Request day cannot be empty") ReqRequestedVacation request,
+            Authentication authentication) {
+        return requestedVacationService.createRequestedVacation(request, authentication);
     }
 
     @PutMapping("/vacations/{requestedVacationId}")
     public void updateVacationStatus(@PathVariable @NotNull(message = "Employee id cannot be empty") Long requestedVacationId,
-                                     @RequestBody @NotNull(message = "Request is cannot be empty") ReqRequestedVacation request) {
-        requestedVacationService.updatedRequestedVacationStatus(requestedVacationId, request);
+                                     @RequestBody @NotNull(message = "Request is cannot be empty") ReqRequestedVacation request,
+                                     Authentication authentication) {
+        requestedVacationService.updatedRequestedVacationStatus(requestedVacationId,
+                 request,
+               authentication);
     }
 
     @PostMapping(("/vacation/{requestedVacationId}/calculate-pay"))

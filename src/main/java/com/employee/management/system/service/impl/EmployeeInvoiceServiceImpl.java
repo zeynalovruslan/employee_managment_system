@@ -3,23 +3,19 @@ package com.employee.management.system.service.impl;
 import com.employee.management.system.calculator.AttendanceCalculator;
 import com.employee.management.system.calculator.SalaryCalculator;
 import com.employee.management.system.dto.response.RespEmployeeInvoice;
-import com.employee.management.system.entity.DayOffDay;
-import com.employee.management.system.entity.Employee;
-import com.employee.management.system.entity.EmployeeInvoice;
-import com.employee.management.system.entity.RequestedVacation;
+import com.employee.management.system.entity.*;
 import com.employee.management.system.enums.EmployeeStatusEnum;
 import com.employee.management.system.enums.RequestVacationStatusEnum;
 import com.employee.management.system.exception.BadRequestException;
 import com.employee.management.system.exception.EmployeeNotFoundException;
 import com.employee.management.system.exception.NotFoundException;
 import com.employee.management.system.mapper.EmployeeInvoiceMapper;
-import com.employee.management.system.repository.DayOffDayRepository;
-import com.employee.management.system.repository.EmployeeInvoiceRepository;
-import com.employee.management.system.repository.EmployeeRepository;
-import com.employee.management.system.repository.RequestedVacationRepository;
+import com.employee.management.system.repository.*;
 import com.employee.management.system.service.EmployeeInvoiceService;
+import com.employee.management.system.service.NotificationService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -38,10 +34,16 @@ public class EmployeeInvoiceServiceImpl implements EmployeeInvoiceService {
     private final DayOffDayRepository dayOffDayRepository;
     private final SalaryCalculator salaryCalculator;
     private final AttendanceCalculator attendanceCalculator;
+    private final NotificationService notificationService;
+    private final UserRepository userRepository;
 
     @Transactional
     @Override
-    public void calculateMonthlySalary(int year, int month) {
+    public void calculateMonthlySalary(int year, int month, String message, Authentication authentication) {
+
+        UserEntity user = userRepository.findByUsername(authentication.getName()).orElseThrow(()
+                -> new NotFoundException("User not found"));
+
         YearMonth yearMonth = YearMonth.of(year, month);
         LocalDate startOfMonth = yearMonth.atDay(1);
         LocalDate endOfMonth = yearMonth.atEndOfMonth();
@@ -107,6 +109,9 @@ public class EmployeeInvoiceServiceImpl implements EmployeeInvoiceService {
                     vacationSalary, totalSalary, monthlyOverTime, monthlyLateTime,
                     monthlyOverTimeSalary, monthlyLateTimeSalary, absentDayCount,
                     absentDayPenalty, countWorkedOnHoliday, workedOnHolidaySalary);
+
+            notificationService.createNotification(user, employee.getUser().getId(), message);
+
         }
     }
 

@@ -12,4 +12,5 @@ public class ReqRequestedVacation {
     private Long employeeId;
     private LocalDate startDay;
     private LocalDate endDay;
+    private String message;
 }

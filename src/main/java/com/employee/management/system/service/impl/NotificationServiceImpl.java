@@ -28,11 +28,12 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public void createNotification(UserEntity sender, Long employeeUserId, String message) {
 
-        UserEntity user = userRepository.findById(employeeUserId).orElseThrow(() -> new NotFoundException("User not found"));
+        UserEntity user = userRepository.findById(employeeUserId).orElseThrow(()
+                -> new NotFoundException("User not found"));
 
 
         Notification notification = new Notification();
-        notification.getSender().setId(sender.getId());
+        notification.setSender(sender);
         notification.setMessage(message);
         notification.setRead(false);
         notification.setToken(UUID.randomUUID().toString());

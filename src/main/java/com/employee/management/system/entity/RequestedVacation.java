@@ -1,5 +1,6 @@
 package com.employee.management.system.entity;
 
+import com.employee.management.system.audit.Auditable;
 import com.employee.management.system.enums.RequestVacationStatusEnum;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Positive;
@@ -20,7 +21,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class RequestedVacation {
+public class RequestedVacation extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,12 +40,6 @@ public class RequestedVacation {
     private BigDecimal vacationPay;
 
     private BigDecimal totalSalary;
-    @CreationTimestamp
-    @Column(updatable = false)
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
 
     @ManyToOne
     @JoinColumn(name = "employee_id", nullable = false)

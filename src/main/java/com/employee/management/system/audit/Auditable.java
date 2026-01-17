@@ -16,7 +16,6 @@ import java.time.LocalDateTime;
 
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
-@RequiredArgsConstructor
 @Data
 public abstract class Auditable {
 

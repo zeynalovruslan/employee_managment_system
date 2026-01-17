@@ -1,12 +1,11 @@
 package com.employee.management.system.controller;
 
-import com.employee.management.system.dto.request.ReqEmployee;
+import com.employee.management.system.dto.request.ReqEmployeeCreate;
 import com.employee.management.system.dto.response.RespEmployee;
 import com.employee.management.system.service.EmployeeService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -31,14 +30,14 @@ public class EmployeeController {
 
     @PostMapping
 //    @PreAuthorize("hasRole('ADMIN')")
-    public RespEmployee addEmployee(@RequestBody @Valid ReqEmployee request) {
+    public RespEmployee addEmployee(@RequestBody @Valid ReqEmployeeCreate request) {
         return employeeService.createEmployee(request);
 
     }
 
     @PutMapping("/{id}")
     public RespEmployee updateEmployee(@PathVariable @NotNull Long id,
-                                       @RequestBody @Valid ReqEmployee request) {
+                                       @RequestBody @Valid ReqEmployeeCreate request) {
         return employeeService.updateEmployee(id, request);
     }
 

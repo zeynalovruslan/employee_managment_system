@@ -1,8 +1,7 @@
 package com.employee.management.system.service;
 
+import com.employee.management.system.dto.request.ReqEmployeeCreate;
 import com.employee.management.system.dto.response.RespEmployee;
-import com.employee.management.system.dto.request.ReqEmployee;
-import lombok.NonNull;
 
 import java.util.List;
 
@@ -12,9 +11,9 @@ public interface EmployeeService {
 
     RespEmployee getEmployeeById(Long id);
 
-    RespEmployee createEmployee(ReqEmployee request);
+    RespEmployee createEmployee(ReqEmployeeCreate request);
 
-    RespEmployee updateEmployee(Long id, ReqEmployee request);
+    RespEmployee updateEmployee(Long id, ReqEmployeeCreate request);
 
     void deleteEmployee(Long id);
 

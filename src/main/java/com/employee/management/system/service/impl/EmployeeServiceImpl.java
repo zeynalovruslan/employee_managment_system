@@ -1,6 +1,6 @@
 package com.employee.management.system.service.impl;
 
-import com.employee.management.system.dto.request.ReqEmployee;
+import com.employee.management.system.dto.request.ReqEmployeeCreate;
 import com.employee.management.system.dto.response.RespEmployee;
 import com.employee.management.system.entity.Employee;
 import com.employee.management.system.enums.EmployeeStatusEnum;
@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Slf4j
@@ -44,13 +45,13 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public RespEmployee createEmployee(ReqEmployee request) {
+    public RespEmployee createEmployee(ReqEmployeeCreate request) {
         Employee saveEmplooye = employeeRepository.save(employeeMapper.toEntity(request));
         return employeeMapper.toResponse(saveEmplooye);
     }
 
     @Override
-    public RespEmployee updateEmployee(Long id, ReqEmployee request) {
+    public RespEmployee updateEmployee(Long id, ReqEmployeeCreate request) {
 
         Employee employee = employeeRepository.findEmployeeByIdAndStatus(id, EmployeeStatusEnum.ACTIVE).orElseThrow(
                 () -> new EmployeeNotFoundException("Employee is not found")
@@ -66,9 +67,10 @@ public class EmployeeServiceImpl implements EmployeeService {
         Employee employee = employeeRepository.findEmployeeByIdAndStatus(id, EmployeeStatusEnum.ACTIVE).orElseThrow(
                 () -> new EmployeeNotFoundException("Employee is not found "));
 
+        LocalDate now = LocalDate.now();
         employee.setStatus((EmployeeStatusEnum.TERMINATED));
+        employee.setTerminateDate(now);
         employeeRepository.save(employee);
-
     }
 
     @Override

@@ -59,7 +59,7 @@ public class RequestedVacationServiceImpl implements RequestedVacationService {
 
         UserEntity user = userRepository.findByUsername(username).orElseThrow(() -> new NotFoundException("User is not Found"));
 
-        Employee employee = employeeRepository.findByUser_IdAndStatus(user.getId(), EmployeeStatusEnum.CREATED).orElseThrow(
+        Employee employee = employeeRepository.findByUser_IdAndStatus(user.getId(), EmployeeStatusEnum.ACTIVE).orElseThrow(
                 () -> new EmployeeNotFoundException("Employee is not found"));
 
         Long totalDay = ChronoUnit.DAYS.between(request.getStartDay(), request.getEndDay()) + 1;

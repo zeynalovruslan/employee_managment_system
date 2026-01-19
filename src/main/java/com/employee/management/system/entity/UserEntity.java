@@ -34,6 +34,8 @@ public class UserEntity {
     @JoinColumn(name = "employee_id", unique = true)
     private Employee employee;
 
+    @OneToMany(mappedBy = "user",cascade = CascadeType.ALL)
+    private List<Leave> leaves;
 
     @OneToMany(mappedBy = "sender")
     private Set<Notification> sentNotifications = new HashSet<>();

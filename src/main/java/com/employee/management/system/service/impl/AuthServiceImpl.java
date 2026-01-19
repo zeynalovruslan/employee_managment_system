@@ -19,6 +19,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -99,6 +100,8 @@ public class AuthServiceImpl implements AuthService {
                 .getAuthentication()
                 .getName();
 
+        LocalDate now = LocalDate.now();
+
         UserEntity user = userRepository.findByUsername(username).orElseThrow(()
                 -> new NotFoundException("User not found"));
 
@@ -116,6 +119,7 @@ public class AuthServiceImpl implements AuthService {
 
         Employee employee = user.getEmployee();
         employee.setStatus(EmployeeStatusEnum.ACTIVE);
+        employee.setStartWorkDate(now);
 
         employeeRepository.save(employee);
         userRepository.save(user);

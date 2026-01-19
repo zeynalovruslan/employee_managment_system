@@ -36,7 +36,6 @@ public class Employee extends Auditable {
     private LocalDate startWorkDate;
     private LocalDate terminateDate;
     private BigDecimal salary;
-    private Integer age;
     private Long totalVacation;
     private Long usingVacation;
 

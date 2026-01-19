@@ -32,9 +32,6 @@ public class ReqEmployeeCreate {
     @Positive(message = "Salary must be positive")
     private BigDecimal salary;
 
-    @Positive(message = "Age must be positive")
-    private Integer age;
-
     private Long positionId;
 
     @Positive(message = "Vacation is must be positive")

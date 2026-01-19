@@ -14,7 +14,5 @@ public interface DayOffDayRepository extends JpaRepository<DayOffDay, Long> {
 
   boolean existsByYearAndMonthAndHoliday(int year, int month , int holiday);
 
- List <DayOffDay> findHolidayByAndYearAndMonth( int year,int month);
-
 
 }

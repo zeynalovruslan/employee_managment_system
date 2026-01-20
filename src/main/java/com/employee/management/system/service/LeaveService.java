@@ -10,4 +10,6 @@ public interface LeaveService {
                            Authentication authentication);
 
     void submitAbsenceJustification(ReqLeave request, Authentication authentication);
+
+    void reviewAbsenceJustification(Long leaveId, ReqLeave request, Authentication authentication);
 }

@@ -27,5 +27,18 @@ public class LeaveController {
         leaveService.reviewHourlyLeave(leaveId, request, authentication);
     }
 
+    @PostMapping("/absence-justification")
+    public void submitAbsenceJustification(@RequestBody ReqLeave request,
+                                           Authentication authentication) {
+        leaveService.submitAbsenceJustification(request, authentication);
+    }
+
+    @PutMapping("/absence-justification/review/{leaveId}")
+    public void reviewAbsenceJustification(@PathVariable Long leaveId,
+                                           @RequestBody ReqLeave request,
+                                           Authentication authentication) {
+        leaveService.reviewAbsenceJustification(leaveId, request, authentication);
+    }
+
 
 }

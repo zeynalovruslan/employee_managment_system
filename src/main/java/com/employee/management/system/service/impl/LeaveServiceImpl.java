@@ -144,7 +144,6 @@ public class LeaveServiceImpl implements LeaveService {
         LocalDate from = request.getStartAt().toLocalDate();
         LocalDate to = request.getEndAt().toLocalDate();
 
-
         if (to.isBefore(from)) {
             throw new BadRequestException("Invalid time range");
         }
@@ -159,7 +158,6 @@ public class LeaveServiceImpl implements LeaveService {
                         !leave.getEndAt().isBefore(from.atStartOfDay()) &&
                                 !leave.getStartAt().isAfter(to.plusDays(1).atStartOfDay())
                 );
-
 
         if (overlapExists) {
             throw new BadRequestException("Leave dates overlap with existing leave");
@@ -179,7 +177,36 @@ public class LeaveServiceImpl implements LeaveService {
         leave.setRequestStatus(LeaveStatusEnum.PENDING);
         leave.setLeaveType(LeaveTypeEnum.ABSENCE);
         leaveRepository.save(leave);
+    }
 
+    @Override
+    public void reviewAbsenceJustification(Long leaveId, ReqLeave request, Authentication authentication) {
+
+        String username = authentication.getName();
+        String message = "Your absence justification has been processed";
+
+        UserEntity user = userRepository.findByUsername(username).orElseThrow(()
+                -> new NotFoundException("User not found"));
+
+        Leave leave = leaveRepository.findById(leaveId).orElseThrow(()
+                -> new NotFoundException("Leave not found"));
+
+        Employee employee = leave.getEmployee();
+
+
+        if (leave.getRequestStatus() != LeaveStatusEnum.PENDING) {
+            throw new BadRequestException("Absence justification must be pending.");
+        }
+
+        if (request.getRequestStatus() != LeaveStatusEnum.APPROVED &&
+                request.getRequestStatus() != LeaveStatusEnum.REJECTED) {
+            throw new BadRequestException("Invalid request data");
+        }
+
+        notificationService.createNotification(user, employee.getUser().getId(), message);
+        leave.setRequestStatus(request.getRequestStatus());
+        leave.setComment(request.getComment());
+        leaveRepository.save(leave);
 
     }
 

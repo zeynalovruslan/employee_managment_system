@@ -1,5 +1,6 @@
 package com.employee.management.system.dto.request;
 
+import com.employee.management.system.enums.LeaveStatusEnum;
 import com.employee.management.system.enums.LeaveTypeEnum;
 import com.employee.management.system.enums.RequestVacationStatusEnum;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -13,6 +14,6 @@ public class ReqLeave {
     private LocalDateTime startAt;
     private LocalDateTime endAt;
     private LeaveTypeEnum leaveType;
-    private RequestVacationStatusEnum requestStatus;
+    private LeaveStatusEnum requestStatus;
     private String comment;
 }

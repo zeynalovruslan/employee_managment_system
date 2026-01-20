@@ -8,4 +8,6 @@ public interface LeaveService {
 
     void reviewHourlyLeave(Long leaveId, ReqLeave request,
                            Authentication authentication);
+
+    void submitAbsenceJustification(ReqLeave request, Authentication authentication);
 }

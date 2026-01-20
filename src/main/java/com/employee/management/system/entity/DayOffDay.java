@@ -1,5 +1,6 @@
 package com.employee.management.system.entity;
 
+import com.employee.management.system.audit.Auditable;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,7 +13,7 @@ import java.time.LocalDate;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class DayOffDay {
+public class DayOffDay extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -1,5 +1,6 @@
 package com.employee.management.system.entity;
 
+import com.employee.management.system.audit.Auditable;
 import com.employee.management.system.enums.CheckStatusEnum;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -14,7 +15,7 @@ import java.time.LocalTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class DailyCheck {
+public class DailyCheck extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

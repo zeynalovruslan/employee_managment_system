@@ -4,6 +4,7 @@ import com.employee.management.system.dto.request.ReqDailyCheck;
 import com.employee.management.system.entity.DailyCheck;
 import com.employee.management.system.entity.Employee;
 import com.employee.management.system.enums.CheckStatusEnum;
+import com.employee.management.system.enums.EmployeeStatusEnum;
 import com.employee.management.system.exception.EmployeeNotFoundException;
 import com.employee.management.system.repository.DailyCheckRepository;
 import com.employee.management.system.repository.DayOffDayRepository;
@@ -15,10 +16,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.time.DayOfWeek;
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalTime;
+import java.time.*;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -93,12 +91,12 @@ public class DailyCheckServiceImpl implements DailyCheckService {
     }
 
     @Transactional
-    @Scheduled(cron = "0 59 23 * * *")
+    @Scheduled(cron = "0 59 23 * * *", zone = "Asia/Baku")
     public void checkAbsentEmployee() {
 
-        LocalDate workDay = LocalDate.now();
+        LocalDate workDay = LocalDate.now(ZoneId.of("Asia/Baku"));
         DayOfWeek dayOfWeek = workDay.getDayOfWeek();
-        List<Employee> employees = employeeRepository.findAll();
+        List<Employee> employees = employeeRepository.findAllByStatus(EmployeeStatusEnum.ACTIVE);
 
         if (dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY) {
             return;

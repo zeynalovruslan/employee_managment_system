@@ -18,20 +18,20 @@ public interface EmployeeInvoiceRepository extends JpaRepository<EmployeeInvoice
 
     boolean existsByEmployeeIdAndYearAndMonth(Long employeeId, int year, int month);
 
-    @Query("""
-                SELECT COUNT(v) > 0
-                FROM RequestedVacation v
-                WHERE v.employee.id = :employeeId
-                  AND v.status IN (:statuses)
-                  AND v.startDay <= :endDay
-                  AND v.endDay >= :startDay
-            """)
-    boolean existsOverlappingVacation(
-            @Param("employeeId") Long employeeId,
-            @Param("statuses") List<RequestVacationStatusEnum> statuses,
-            @Param("startDay") LocalDate startDay,
-            @Param("endDay") LocalDate endDay
-    );
+//    @Query("""
+//                SELECT COUNT(v) > 0
+//                FROM RequestedVacation v
+//                WHERE v.employee.id = :employeeId
+//                  AND v.status IN (:statuses)
+//                  AND v.startDay <= :endDay
+//                  AND v.endDay >= :startDay
+//            """)
+//    boolean existsOverlappingVacation(
+//            @Param("employeeId") Long employeeId,
+//            @Param("statuses") List<RequestVacationStatusEnum> statuses,
+//            @Param("startDay") LocalDate startDay,
+//            @Param("endDay") LocalDate endDay
+//    );                                                            {{{ lazim olarsa eger query ile de yoxlaya bilerik}}}
 
 
    Optional<List<EmployeeInvoice>> findByEmployeeId(Long employeeId);

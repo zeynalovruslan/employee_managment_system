@@ -1,6 +1,6 @@
 package com.employee.management.system.controller;
 
-import com.employee.management.system.dto.request.ReqEmployeeCreate;
+import com.employee.management.system.dto.request.ReqEmployee;
 import com.employee.management.system.dto.response.RespEmployee;
 import com.employee.management.system.service.EmployeeService;
 import jakarta.validation.Valid;
@@ -30,14 +30,14 @@ public class EmployeeController {
 
     @PostMapping
 //    @PreAuthorize("hasRole('ADMIN')")
-    public RespEmployee addEmployee(@RequestBody @Valid ReqEmployeeCreate request) {
+    public RespEmployee addEmployee(@RequestBody @Valid ReqEmployee request) {
         return employeeService.createEmployee(request);
 
     }
 
     @PutMapping("/{id}")
     public RespEmployee updateEmployee(@PathVariable @NotNull Long id,
-                                       @RequestBody @Valid ReqEmployeeCreate request) {
+                                       @RequestBody @Valid ReqEmployee request) {
         return employeeService.updateEmployee(id, request);
     }
 

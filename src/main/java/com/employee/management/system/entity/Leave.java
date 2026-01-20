@@ -1,6 +1,7 @@
 package com.employee.management.system.entity;
 
 import com.employee.management.system.audit.Auditable;
+import com.employee.management.system.enums.LeaveStatusEnum;
 import com.employee.management.system.enums.LeaveTypeEnum;
 import com.employee.management.system.enums.RequestVacationStatusEnum;
 import jakarta.persistence.*;
@@ -27,7 +28,7 @@ public class Leave extends Auditable {
     private LeaveTypeEnum leaveType;
 
     @Enumerated(EnumType.STRING)
-    private RequestVacationStatusEnum requestStatus;
+    private LeaveStatusEnum requestStatus;
     private String comment;
 
     @ManyToOne

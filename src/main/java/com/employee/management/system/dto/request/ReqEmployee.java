@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Data
-public class ReqEmployeeCreate {
+public class ReqEmployee {
     @NotBlank(message = "Name is cannot be empty")
     private String name;
 

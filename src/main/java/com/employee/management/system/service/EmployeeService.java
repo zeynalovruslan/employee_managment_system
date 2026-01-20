@@ -1,6 +1,6 @@
 package com.employee.management.system.service;
 
-import com.employee.management.system.dto.request.ReqEmployeeCreate;
+import com.employee.management.system.dto.request.ReqEmployee;
 import com.employee.management.system.dto.response.RespEmployee;
 
 import java.util.List;
@@ -11,9 +11,9 @@ public interface EmployeeService {
 
     RespEmployee getEmployeeById(Long id);
 
-    RespEmployee createEmployee(ReqEmployeeCreate request);
+    RespEmployee createEmployee(ReqEmployee request);
 
-    RespEmployee updateEmployee(Long id, ReqEmployeeCreate request);
+    RespEmployee updateEmployee(Long id, ReqEmployee request);
 
     void deleteEmployee(Long id);
 

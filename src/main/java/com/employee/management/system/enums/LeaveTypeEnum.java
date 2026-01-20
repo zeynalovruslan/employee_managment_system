@@ -6,7 +6,7 @@ import lombok.Getter;
 public enum LeaveTypeEnum {
 
     HOURLY("hourly reason"),
-    SICK("sick");
+    ABSENCE("absence reason");
 
     private final String value;
 

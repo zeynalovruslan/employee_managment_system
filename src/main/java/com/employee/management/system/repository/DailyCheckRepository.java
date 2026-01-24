@@ -19,4 +19,6 @@ public interface DailyCheckRepository extends JpaRepository<DailyCheck, Long> {
     long countByEmployeeIdAndStatusAndWorkDateBetween(Long employeeId, CheckStatusEnum status, LocalDate startDate, LocalDate endDate);
 
     long countByEmployeeIdAndWorkDateBetween(Long employeeId, LocalDate startDate, LocalDate endDate);
+
+
 }

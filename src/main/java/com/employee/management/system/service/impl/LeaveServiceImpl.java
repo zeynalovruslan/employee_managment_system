@@ -70,7 +70,9 @@ public class LeaveServiceImpl implements LeaveService {
                         leave.getLeaveType() == LeaveTypeEnum.HOURLY)
                 .anyMatch(leave ->
                         leave.getStartAt().isBefore(request.getEndAt()) &&
-                                leave.getEndAt().isBefore(request.getStartAt()));
+                                leave.getEndAt().isAfter(request.getStartAt())
+                );
+
 
         if (overlapExists) {
             throw new BadRequestException("Hourly leave already exists");
@@ -150,10 +152,10 @@ public class LeaveServiceImpl implements LeaveService {
 
         boolean overlapExists = employee.getLeaves().stream()
                 .filter(leave ->
-                        leave.getRequestStatus() == LeaveStatusEnum.PENDING ||
-                                leave.getRequestStatus() == LeaveStatusEnum.APPROVED &&
-                                        leave.getLeaveType() == LeaveTypeEnum.ABSENCE
+                        (leave.getRequestStatus() == LeaveStatusEnum.PENDING || leave.getRequestStatus() == LeaveStatusEnum.APPROVED) &&
+                                leave.getLeaveType() == LeaveTypeEnum.ABSENCE
                 )
+
                 .anyMatch(leave ->
                         !leave.getEndAt().isBefore(from.atStartOfDay()) &&
                                 !leave.getStartAt().isAfter(to.plusDays(1).atStartOfDay())

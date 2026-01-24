@@ -48,8 +48,7 @@ public class EmployeeInvoiceServiceImpl implements EmployeeInvoiceService {
         LocalDate startOfMonth = yearMonth.atDay(1);
         LocalDate endOfMonth = yearMonth.atEndOfMonth();
 
-        List<Employee> employeeList = employeeRepository.findEmployeeByStatus(EmployeeStatusEnum.CREATED).orElseThrow(()
-                -> new EmployeeNotFoundException("Employee not found"));
+        List<Employee> employeeList = employeeRepository.findEmployeeByStatus(EmployeeStatusEnum.ACTIVE);
 
         List<DayOffDay> holidays = dayOffDayRepository.findHolidayByYearAndMonth(year, month);
 
@@ -84,7 +83,7 @@ public class EmployeeInvoiceServiceImpl implements EmployeeInvoiceService {
 
             long absentDayCount = attendanceCalculator.calculateAbsentDay(employee.getId(), startOfMonth, endOfMonth);
 
-            long countWorkedOnHoliday = attendanceCalculator.calculateWorkedOnHoliday(employee.getId(), startOfMonth, endOfMonth);
+            long countWorkedOnHoliday = attendanceCalculator.calculateWorkedOnHoliday(employee.getId(), yearMonth, startOfMonth, endOfMonth);
 
             BigDecimal absentDayPenalty = salaryCalculator.calculateAbsentDayPenalty(dailySalary, absentDayCount);
 

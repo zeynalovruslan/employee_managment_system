@@ -137,7 +137,7 @@ public class RequestedVacationServiceImpl implements RequestedVacationService {
             employee.setTotalVacation(result);
         }
 
-        notificationService.createNotification(user,employee.getId(),request.getMessage());
+        notificationService.createNotification(user,employee.getUser().getId(),request.getMessage());
         requestedVacation.setStatus(request.getStatus());
 
         requestedVacationRepository.save(requestedVacation);

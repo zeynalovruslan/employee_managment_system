@@ -25,13 +25,13 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     private final EmployeeRepository employeeRepository;
     private final EmployeeMapper employeeMapper;
-    private final UserRepository userRepository;
+
 
 
     @Override
     public List<RespEmployee> getAllEmployees() {
         List<Employee> employeeList = employeeRepository.findEmployeeByStatus(
-                EmployeeStatusEnum.ACTIVE).orElseThrow(() -> new EmployeeNotFoundException("Employee not found"));
+                EmployeeStatusEnum.ACTIVE);
         return employeeList.stream().map(employeeMapper::toResponse).toList();
     }
 

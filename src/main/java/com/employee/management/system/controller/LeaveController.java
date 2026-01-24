@@ -3,6 +3,7 @@ package com.employee.management.system.controller;
 import com.employee.management.system.dto.request.ReqLeave;
 import com.employee.management.system.service.LeaveService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -27,6 +28,7 @@ public class LeaveController {
         leaveService.reviewHourlyLeave(leaveId, request, authentication);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/absence-justification")
     public void submitAbsenceJustification(@RequestBody ReqLeave request,
                                            Authentication authentication) {

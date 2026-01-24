@@ -70,11 +70,11 @@ public class DailyCheckServiceImpl implements DailyCheckService {
 
         long workedOnHoliday = 0;
         if (holidays.contains(workDate)
-                || workDate.equals(DayOfWeek.SATURDAY)
-                || workDate.equals(DayOfWeek.SUNDAY)) {
+                || workDate.getDayOfWeek() == DayOfWeek.SATURDAY
+                || workDate.getDayOfWeek() == DayOfWeek.SUNDAY) {
 
 
-            workedOnHoliday++ ;
+            workedOnHoliday++;
         }
 
         dailyCheck.setEmployee(employee);
@@ -98,6 +98,7 @@ public class DailyCheckServiceImpl implements DailyCheckService {
         DayOfWeek dayOfWeek = workDay.getDayOfWeek();
         List<Employee> employees = employeeRepository.findAllByStatus(EmployeeStatusEnum.ACTIVE);
 
+
         if (dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY) {
             return;
         }
@@ -110,18 +111,18 @@ public class DailyCheckServiceImpl implements DailyCheckService {
         for (Employee employee : employees) {
             boolean exists = dailyCheckRepository.existsDailyCheckByEmployeeAndWorkDate(employee, workDay);
 
-            if (!exists) {
-                DailyCheck dailyCheck = new DailyCheck();
-                dailyCheck.setEmployee(employee);
-                dailyCheck.setWorkDate(workDay);
-                dailyCheck.setOverTime(0);
-                dailyCheck.setLateTime(0);
-                dailyCheck.setEntryTime(null);
-                dailyCheck.setExitTime(null);
-                dailyCheck.setStatus(CheckStatusEnum.ABSENT);
-                dailyCheckRepository.save(dailyCheck);
+                if (!exists) {
+                    DailyCheck dailyCheck = new DailyCheck();
+                    dailyCheck.setEmployee(employee);
+                    dailyCheck.setWorkDate(workDay);
+                    dailyCheck.setOverTime(0);
+                    dailyCheck.setLateTime(0);
+                    dailyCheck.setEntryTime(null);
+                    dailyCheck.setExitTime(null);
+                    dailyCheck.setStatus(CheckStatusEnum.ABSENT);
+                    dailyCheckRepository.save(dailyCheck);
 
-            }
+                }
         }
     }
 }

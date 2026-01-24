@@ -3,6 +3,7 @@ package com.employee.management.system.calculator;
 import com.employee.management.system.entity.*;
 import com.employee.management.system.enums.CheckStatusEnum;
 import com.employee.management.system.repository.DailyCheckRepository;
+import com.employee.management.system.repository.DayOffDayRepository;
 import com.employee.management.system.repository.EmployeeInvoiceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -24,6 +25,7 @@ public class AttendanceCalculator {
     private final DailyCheckRepository dailyCheckRepository;
 
     private final EmployeeInvoiceRepository employeeInvoiceRepository;
+    private final DayOffDayRepository dayOffDayRepository;
 
     public long calculateMonthlyOverTime(Long employeeId, LocalDate startDate, LocalDate endDate) {
         List<DailyCheck> overTime = dailyCheckRepository.findByEmployeeIdAndWorkDateBetween(employeeId, startDate, endDate);
@@ -45,9 +47,16 @@ public class AttendanceCalculator {
         return countAbsentDay;
     }
 
-    public long calculateWorkedOnHoliday(Long employeeId, LocalDate startDate, LocalDate endDate) {
-        long workedOnHoliday = dailyCheckRepository.countByEmployeeIdAndWorkDateBetween(employeeId, startDate, endDate);
-        return workedOnHoliday;
+    public long calculateWorkedOnHoliday(Long employeeId, YearMonth yearMonth, LocalDate startDate, LocalDate endDate) {
+        Set<LocalDate> holidaySet = dayOffDayRepository.findHolidayByYearAndMonth(yearMonth.getYear(), yearMonth.getMonth().getValue())
+                .stream()
+                .map(d -> LocalDate.of(d.getYear(), d.getMonth(), d.getHoliday()))
+                .collect(Collectors.toSet());
+
+        if (holidaySet.isEmpty()) return 0;
+
+        return dailyCheckRepository.findByEmployeeIdAndWorkDateBetween(employeeId, startDate, endDate).
+                stream().map(DailyCheck::getWorkDate).filter(holidaySet::contains).distinct().count();
     }
 
 

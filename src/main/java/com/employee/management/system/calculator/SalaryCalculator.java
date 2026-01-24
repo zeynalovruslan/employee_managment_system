@@ -92,7 +92,7 @@ public class SalaryCalculator {
                 .add(vacationSalary)
                 .add(workedHolidaySalary)
                 .add(monthlyOverTimeSalary)
-                .subtract(monthlyLateTimeSalary).add(absentDaySalary);
+                .subtract(monthlyLateTimeSalary).subtract(absentDaySalary);
 
     }
 

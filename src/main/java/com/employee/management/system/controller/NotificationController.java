@@ -26,14 +26,14 @@ public class NotificationController {
 
         UserEntity user = userRepository.findByUsername(principal.getUsername())
                 .orElseThrow(() -> new NotFoundException("User not found"));
-        return notificationService.getAllNotificationByUserId(user.getId());
+        return notificationService.getAllNotificationByEmployeeId(user.getId());
     }
 
     @GetMapping("/unread-notification")
     public List<RespNotification> getUnreadNotificationByUserId(@AuthenticationPrincipal org.springframework.security.core.userdetails.User principal) {
         UserEntity user = userRepository.findByUsername(principal.getUsername())
                 .orElseThrow(() -> new NotFoundException("User not found"));
-        return notificationService.getUnreadNotificationByUserId(user.getId());
+        return notificationService.getUnreadNotificationByEmployeeId(user.getId());
     }
 
     @GetMapping("/read/{notificationId}")

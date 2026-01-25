@@ -10,9 +10,9 @@ public interface NotificationService {
 
     void createNotification(UserEntity sender, Long employeeUserId, String message);
 
-    List<RespNotification> getAllNotificationByUserId(Long userId);
+    List<RespNotification> getAllNotificationByEmployeeId(Long userId);
 
-    List<RespNotification> getUnreadNotificationByUserId(Long userId);
+    List<RespNotification> getUnreadNotificationByEmployeeId(Long userId);
 
     void markAsReadFromEmail(Long notificationId, String token);
 }

@@ -55,7 +55,7 @@ public class Employee extends Auditable {
     private List <DailyCheck> dailyCheck;
 
     @OneToMany(mappedBy = "employee",cascade = CascadeType.ALL)
-    private List<Leave> leaves;
+    private List<Leave> leaves = new ArrayList<>();
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude

@@ -21,5 +21,4 @@ public class Department {
 
     @OneToMany(mappedBy = "department")
     private List<Position> positions;
-
 }

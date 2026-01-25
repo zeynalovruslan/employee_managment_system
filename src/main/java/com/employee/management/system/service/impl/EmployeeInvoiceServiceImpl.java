@@ -15,6 +15,7 @@ import com.employee.management.system.service.EmployeeInvoiceService;
 import com.employee.management.system.service.NotificationService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
@@ -115,6 +116,7 @@ public class EmployeeInvoiceServiceImpl implements EmployeeInvoiceService {
     }
 
     @Override
+    @PreAuthorize("@userSecurity.isOwner(#employeeId)")
     public List<RespEmployeeInvoice> getInvoicesByEmployeeId(Long employeeId) {
         List<EmployeeInvoice> invoices = employeeInvoiceRepository.findByEmployeeId(employeeId).orElseThrow(()
                 -> new NotFoundException("Invoices not found"));

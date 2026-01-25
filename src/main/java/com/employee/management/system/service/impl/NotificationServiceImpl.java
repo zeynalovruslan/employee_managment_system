@@ -1,15 +1,19 @@
 package com.employee.management.system.service.impl;
 
 import com.employee.management.system.dto.response.RespNotification;
+import com.employee.management.system.entity.Employee;
 import com.employee.management.system.entity.Notification;
 import com.employee.management.system.entity.UserEntity;
 import com.employee.management.system.exception.BadRequestException;
+import com.employee.management.system.exception.EmployeeNotFoundException;
 import com.employee.management.system.exception.NotFoundException;
+import com.employee.management.system.repository.EmployeeRepository;
 import com.employee.management.system.repository.NotificationRepository;
 import com.employee.management.system.repository.UserRepository;
 import com.employee.management.system.service.NotificationService;
 import com.employee.management.system.util.MailService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -23,6 +27,7 @@ public class NotificationServiceImpl implements NotificationService {
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
     private final MailService mailService;
+    private final EmployeeRepository employeeRepository;
 
 
     @Override
@@ -48,19 +53,22 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public List<RespNotification> getAllNotificationByUserId(Long userId) {
-        UserEntity user = userRepository.findById(userId).orElseThrow(()
-                -> new NotFoundException("User not found"));
+    @PreAuthorize("@userSecurity.isOwner(#employeeId)")
+    public List<RespNotification> getAllNotificationByEmployeeId(Long employeeId) {
+        Employee employee = employeeRepository.findById(employeeId).orElseThrow((()
+                -> new EmployeeNotFoundException("Employee is not found")));
+
+        Long userId = employee.getUser().getId();
 
         Long totalNotifications = notificationRepository.countByReceiver_Id(userId);
 
         Long unreadNotifications = notificationRepository.countByReceiver_IdAndIsReadFalse(userId);
 
-        List<RespNotification> notificationList = notificationRepository.findByReceiver_Id(user.getId()).stream().map(notification -> {
+        List<RespNotification> notificationList = notificationRepository.findByReceiver_Id(userId).stream().map(notification -> {
 
             RespNotification respNotification = new RespNotification();
             respNotification.setMessage(notification.getMessage());
-            respNotification.setUserId(user.getId());
+            respNotification.setUserId(userId);
             respNotification.setCreatedAt(notification.getCreatedAt());
             respNotification.setRead(notification.isRead());
             respNotification.setTotalNotificationCount(totalNotifications);
@@ -73,18 +81,22 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public List<RespNotification> getUnreadNotificationByUserId(Long userId) {
+    @PreAuthorize("@userSecurity.isOwner(#employeeId)")
+    public List<RespNotification> getUnreadNotificationByEmployeeId(Long employeeId) {
 
-        UserEntity user = userRepository.findById(userId).orElseThrow(()
-                -> new NotFoundException("User not found"));
+        Employee employee = employeeRepository.findById(employeeId).orElseThrow((()
+                -> new EmployeeNotFoundException("Employee is not found")));
+
+        Long userId = employee.getUser().getId();
+
 
         Long unreadNotifications = notificationRepository.countByReceiver_IdAndIsReadFalse(userId);
 
         List<RespNotification> unreadNotificationList = notificationRepository.findByReceiver_IdAndIsReadFalse(
-                user.getId()).stream().map(notification ->
+                userId).stream().map(notification ->
         {
             RespNotification respNotification = new RespNotification();
-            respNotification.setUserId(user.getId());
+            respNotification.setUserId(userId);
             respNotification.setMessage(notification.getMessage());
             respNotification.setRead(notification.isRead());
             respNotification.setCreatedAt(notification.getCreatedAt());

@@ -53,7 +53,7 @@ public class UserSecurity {
         }
 
         UserEntity user = userRepository.findByUsername(auth.getName()).orElseThrow(()
-                -> new EmployeeNotFoundException("Employee not found"));
+                -> new EmployeeNotFoundException("User not found"));
 
         boolean isAdminOrHr = user.getRoles().stream().anyMatch(r -> r.getRoleName().equals(RoleNameEnum.ADMIN) ||
                 r.getRoleName().equals(RoleNameEnum.HR));

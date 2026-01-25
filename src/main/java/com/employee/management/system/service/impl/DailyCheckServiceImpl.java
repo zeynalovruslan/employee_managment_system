@@ -14,6 +14,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.time.*;
@@ -36,6 +37,7 @@ public class DailyCheckServiceImpl implements DailyCheckService {
 
 
     @Override
+    @PreAuthorize("@userSecurity.isOwner(#request.employeeId)")
     public void addInputAndOutput(ReqDailyCheck request) {
 
         Employee employee = employeeRepository.findEmployeeById(request.getEmployeeId()).orElseThrow(()
@@ -81,7 +83,6 @@ public class DailyCheckServiceImpl implements DailyCheckService {
         dailyCheck.setLateTime(lateMinutes);
         dailyCheck.setOverTime(overtimeMinutes);
         dailyCheck.setStatus(status);
-        dailyCheck.setEmployee(employee);
         dailyCheck.setEntryTime(request.getEntryTime());
         dailyCheck.setExitTime(request.getExitTime());
         dailyCheck.setWorkDate(workDate);
@@ -91,10 +92,10 @@ public class DailyCheckServiceImpl implements DailyCheckService {
     }
 
     @Transactional
-    @Scheduled(cron = "0 59 23 * * *", zone = "Asia/Baku")
+    @Scheduled(cron = "0 59 23 * * *")
     public void checkAbsentEmployee() {
 
-        LocalDate workDay = LocalDate.now(ZoneId.of("Asia/Baku"));
+        LocalDate workDay = LocalDate.now();
         DayOfWeek dayOfWeek = workDay.getDayOfWeek();
         List<Employee> employees = employeeRepository.findAllByStatus(EmployeeStatusEnum.ACTIVE);
 
@@ -111,18 +112,18 @@ public class DailyCheckServiceImpl implements DailyCheckService {
         for (Employee employee : employees) {
             boolean exists = dailyCheckRepository.existsDailyCheckByEmployeeAndWorkDate(employee, workDay);
 
-                if (!exists) {
-                    DailyCheck dailyCheck = new DailyCheck();
-                    dailyCheck.setEmployee(employee);
-                    dailyCheck.setWorkDate(workDay);
-                    dailyCheck.setOverTime(0);
-                    dailyCheck.setLateTime(0);
-                    dailyCheck.setEntryTime(null);
-                    dailyCheck.setExitTime(null);
-                    dailyCheck.setStatus(CheckStatusEnum.ABSENT);
-                    dailyCheckRepository.save(dailyCheck);
+            if (!exists) {
+                DailyCheck dailyCheck = new DailyCheck();
+                dailyCheck.setEmployee(employee);
+                dailyCheck.setWorkDate(workDay);
+                dailyCheck.setOverTime(0);
+                dailyCheck.setLateTime(0);
+                dailyCheck.setEntryTime(null);
+                dailyCheck.setExitTime(null);
+                dailyCheck.setStatus(CheckStatusEnum.ABSENT);
+                dailyCheckRepository.save(dailyCheck);
 
-                }
+            }
         }
     }
 }

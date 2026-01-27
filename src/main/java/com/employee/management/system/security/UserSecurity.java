@@ -3,6 +3,7 @@ package com.employee.management.system.security;
 import com.employee.management.system.entity.UserEntity;
 import com.employee.management.system.enums.RoleNameEnum;
 import com.employee.management.system.exception.EmployeeNotFoundException;
+import com.employee.management.system.exception.NotFoundException;
 import com.employee.management.system.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -53,7 +54,7 @@ public class UserSecurity {
         }
 
         UserEntity user = userRepository.findByUsername(auth.getName()).orElseThrow(()
-                -> new EmployeeNotFoundException("User not found"));
+                -> new NotFoundException("User not found"));
 
         boolean isAdminOrHr = user.getRoles().stream().anyMatch(r -> r.getRoleName().equals(RoleNameEnum.ADMIN) ||
                 r.getRoleName().equals(RoleNameEnum.HR));

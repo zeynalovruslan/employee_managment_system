@@ -110,7 +110,7 @@ public class EmployeeInvoiceServiceImpl implements EmployeeInvoiceService {
                     monthlyOverTimeSalary, monthlyLateTimeSalary, absentDayCount,
                     absentDayPenalty, countWorkedOnHoliday, workedOnHolidaySalary);
 
-            notificationService.createNotification(user, employee.getUser().getId(), message);
+            notificationService.createNotification(authentication, employee.getUser().getId(), message);
 
         }
     }

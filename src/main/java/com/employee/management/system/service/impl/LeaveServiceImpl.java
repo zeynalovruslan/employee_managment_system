@@ -121,7 +121,7 @@ public class LeaveServiceImpl implements LeaveService {
             throw new BadRequestException("Invalid request data");
         }
 
-        notificationService.createNotification(user, employee.getUser().getId(), notificationMessage);
+        notificationService.createNotification(authentication, employee.getUser().getId(), notificationMessage);
 
         leave.setRequestStatus(request.getRequestStatus());
         leave.setComment(request.getComment());
@@ -205,7 +205,7 @@ public class LeaveServiceImpl implements LeaveService {
             throw new BadRequestException("Invalid request data");
         }
 
-        notificationService.createNotification(user, employee.getUser().getId(), message);
+        notificationService.createNotification(authentication, employee.getUser().getId(), message);
         leave.setRequestStatus(request.getRequestStatus());
         leave.setComment(request.getComment());
         leaveRepository.save(leave);

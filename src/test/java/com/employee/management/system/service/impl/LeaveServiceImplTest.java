@@ -182,7 +182,7 @@ class LeaveServiceImplTest {
     }
 
     @Test
-    void createHourlyLeave_StartAtIsBeforeEndAt_throwsBadRequest() {
+    void createHourlyLeave_ToIsBeforeFrom_throwsBadRequest() {
 
         ReqLeave reqLeave = new ReqLeave();
         reqLeave.setStartAt(LocalDateTime.of(2026, 1, 25, 11, 0));

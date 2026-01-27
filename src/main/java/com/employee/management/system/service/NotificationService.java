@@ -2,17 +2,17 @@ package com.employee.management.system.service;
 
 
 import com.employee.management.system.dto.response.RespNotification;
-import com.employee.management.system.entity.UserEntity;
+import org.springframework.security.core.Authentication;
 
 import java.util.List;
 
 public interface NotificationService {
 
-    void createNotification(UserEntity sender, Long employeeUserId, String message);
+    void createNotification(Authentication auth, Long employeeId, String message);
 
-    List<RespNotification> getAllNotificationByEmployeeId(Long userId);
+    List<RespNotification> getAllNotificationByEmployeeId(Long employeeId);
 
-    List<RespNotification> getUnreadNotificationByEmployeeId(Long userId);
+    List<RespNotification> getUnreadNotificationByEmployeeId(Long employeeId);
 
-    void markAsReadFromEmail(Long notificationId, String token);
+    void markAsReadFromEmail(Authentication auth, Long notificationId, String token);
 }

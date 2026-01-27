@@ -22,13 +22,13 @@ public class LeaveController {
     }
 
     @PutMapping("/{leaveId}")
+    @PreAuthorize("hasAnyRole('ADMIN','HR')")
     public void reviewHourlyLeave(@PathVariable Long leaveId,
                                   @RequestBody ReqLeave request,
                                   Authentication authentication) {
         leaveService.reviewHourlyLeave(leaveId, request, authentication);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/absence-justification")
     public void submitAbsenceJustification(@RequestBody ReqLeave request,
                                            Authentication authentication) {
@@ -36,6 +36,7 @@ public class LeaveController {
     }
 
     @PutMapping("/absence-justification/review/{leaveId}")
+    @PreAuthorize("hasAnyRole('ADMIN','HR')")
     public void reviewAbsenceJustification(@PathVariable Long leaveId,
                                            @RequestBody ReqLeave request,
                                            Authentication authentication) {

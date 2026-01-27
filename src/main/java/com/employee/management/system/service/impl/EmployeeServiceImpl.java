@@ -63,8 +63,8 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public void deleteEmployee(Long id) {
-        Employee employee = employeeRepository.findEmployeeByIdAndStatus(id, EmployeeStatusEnum.ACTIVE).orElseThrow(
+    public void terminateEmployeeById(Long employeeId) {
+        Employee employee = employeeRepository.findEmployeeByIdAndStatus(employeeId, EmployeeStatusEnum.ACTIVE).orElseThrow(
                 () -> new EmployeeNotFoundException("Employee is not found "));
 
         LocalDate now = LocalDate.now();

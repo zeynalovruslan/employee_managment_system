@@ -4,6 +4,7 @@ import com.employee.management.system.dto.request.ReqDayOffDay;
 import com.employee.management.system.dto.response.RespDayOffDay;
 import com.employee.management.system.service.DayOffDayService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,6 +16,7 @@ public class DayOffDayController {
     private final DayOffDayService dayOffDayService;
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN','HR')")
     public void create(@RequestBody ReqDayOffDay request) {
         dayOffDayService.createHoliday(request);
     }

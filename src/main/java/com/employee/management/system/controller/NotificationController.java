@@ -3,6 +3,7 @@ package com.employee.management.system.controller;
 import com.employee.management.system.dto.response.RespNotification;
 import com.employee.management.system.service.NotificationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,6 +34,7 @@ public class NotificationController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN','HR')")
     public void createNotification(@RequestParam Long employeeId,
                                    @RequestBody String message,
                                    Authentication auth) {

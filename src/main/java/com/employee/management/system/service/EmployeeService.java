@@ -15,7 +15,7 @@ public interface EmployeeService {
 
     RespEmployee updateEmployee(Long id, ReqEmployee request);
 
-    void deleteEmployee(Long id);
+    void terminateEmployeeById(Long employeeId);
 
      List<RespEmployee> getEmployeeListByDepartmentId(Long departmentId);
 

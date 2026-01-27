@@ -16,7 +16,7 @@ public interface RequestedVacationService {
 
     RespRequestedVacation getRequestedVacationByVacationId(Long vacationId);
 
-    List<RespRequestedVacation> getRequestedVacationByEmployeeId(Long employeeId);
+    List<RespRequestedVacation>     getRequestedVacationByEmployeeId(Long employeeId);
 
     RespRequestedVacation calculateVacationPayByVacationId(Long requestedVacationId);
 }

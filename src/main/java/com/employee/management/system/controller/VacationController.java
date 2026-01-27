@@ -5,6 +5,7 @@ import com.employee.management.system.dto.response.RespRequestedVacation;
 import com.employee.management.system.service.RequestedVacationService;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +19,7 @@ import java.util.List;
 public class VacationController {
     private final RequestedVacationService requestedVacationService;
 
-
+    @PreAuthorize("hasAnyRole('ADMIN','HR')")
     @GetMapping("/vacations/{vacationId}")
     public RespRequestedVacation getRequestedVacationByVacationId(
             @PathVariable
@@ -42,6 +43,7 @@ public class VacationController {
     }
 
     @PutMapping("/vacations/{requestedVacationId}")
+    @PreAuthorize("hasAnyRole('ADMIN','HR')")
     public void updateVacationStatus(@PathVariable @NotNull(message = "Employee id cannot be empty") Long requestedVacationId,
                                      @RequestBody @NotNull(message = "Request is cannot be empty") ReqRequestedVacation request,
                                      Authentication authentication) {
@@ -51,6 +53,7 @@ public class VacationController {
     }
 
     @PostMapping(("/vacation/{requestedVacationId}/calculate-pay"))
+    @PreAuthorize("hasAnyRole('ADMIN','HR')")
     public RespRequestedVacation calculateVacation(
             @PathVariable
             @NotNull(message = "Requested vacation id cannot be empty") Long requestedVacationId) {

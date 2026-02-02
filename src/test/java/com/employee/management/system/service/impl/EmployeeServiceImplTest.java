@@ -200,7 +200,7 @@ class EmployeeServiceImplTest {
         employee.setStatus(EmployeeStatusEnum.ACTIVE);
 
         when(employeeRepository.findEmployeeByIdAndStatus(id, EmployeeStatusEnum.ACTIVE)).thenReturn(Optional.of(employee));
-        employeeServiceImpl.deleteEmployee(id);
+        employeeServiceImpl.terminateEmployeeById(id);
 
         assertEquals(EmployeeStatusEnum.TERMINATED, employee.getStatus());
         assertEquals(LocalDate.now(), employee.getTerminateDate());
@@ -216,7 +216,7 @@ class EmployeeServiceImplTest {
 
         when(employeeRepository.findEmployeeByIdAndStatus(id, EmployeeStatusEnum.ACTIVE)).thenReturn(Optional.empty());
 
-        assertThrows(EmployeeNotFoundException.class, () -> employeeServiceImpl.deleteEmployee(id));
+        assertThrows(EmployeeNotFoundException.class, () -> employeeServiceImpl.terminateEmployeeById(id));
 
         verify(employeeRepository, never()).save(any());
 

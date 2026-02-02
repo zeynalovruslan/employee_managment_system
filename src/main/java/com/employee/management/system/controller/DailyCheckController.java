@@ -18,7 +18,7 @@ public class DailyCheckController {
     private final DailyCheckService dailyCheckService;
 
     @PostMapping
-    public void addDailyCheck(@Valid @RequestBody ReqDailyCheck request) {
+    public void  addDailyCheck(@Valid @RequestBody ReqDailyCheck request) {
         dailyCheckService.addInputAndOutput(request);
     }
 

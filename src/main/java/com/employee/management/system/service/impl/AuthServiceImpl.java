@@ -15,6 +15,7 @@ import com.employee.management.system.repository.UserRepository;
 import com.employee.management.system.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -75,30 +76,27 @@ public class AuthServiceImpl implements AuthService {
         userRepository.save(user);
     }
 
+//    @Override
+//    public void loginUser(String username, String password) {
+//
+//        UserEntity user = userRepository.findByUsername(username).orElseThrow(()
+//                -> new NotFoundException("User not found"));
+//
+//        if (!passwordEncoder.matches(password, user.getPassword())) {
+//            throw new BadRequestException("Wrong password");
+//        }
+//
+//        if (user.isMustChangePassword()) {
+//            throw new BadRequestException("You must change your password before login");
+//        }
+//
+//
+//    }
+
     @Override
-    public void loginUser(String username, String password) {
+    public void changePasswordForFirstLogin(String newPassword, Authentication auth) {
 
-        UserEntity user = userRepository.findByUsername(username).orElseThrow(()
-                -> new NotFoundException("User not found"));
-
-        if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new BadRequestException("Wrong password");
-        }
-
-        if (user.isMustChangePassword()) {
-            throw new BadRequestException("You must change your password before login");
-        }
-
-
-    }
-
-    @Override
-    public void changePasswordForFirstLogin(String newPassword) {
-
-        String username = SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getName();
+        String username = auth.getName();
 
         LocalDate now = LocalDate.now();
 

@@ -48,6 +48,7 @@ public class DailyCheckServiceImpl implements DailyCheckService {
 
         LocalDate workDate = LocalDate.now();
 
+
         Set<LocalDate> holidays = dayOffDayRepository.findHolidayByYearAndMonth(
                 workDate.getYear(), workDate.getMonthValue()).stream().map(
                 h -> LocalDate.of(h.getYear(), h.getMonth(), h.getHoliday())).collect(Collectors.toSet());

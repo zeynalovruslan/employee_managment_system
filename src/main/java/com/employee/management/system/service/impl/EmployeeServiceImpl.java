@@ -7,11 +7,13 @@ import com.employee.management.system.enums.EmployeeStatusEnum;
 import com.employee.management.system.exception.EmployeeNotFoundException;
 import com.employee.management.system.mapper.EmployeeMapper;
 import com.employee.management.system.repository.EmployeeRepository;
-import com.employee.management.system.repository.UserRepository;
 import com.employee.management.system.service.EmployeeService;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +31,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
 
     @Override
+    @Cacheable(cacheNames = "employees:all")
     public List<RespEmployee> getAllEmployees() {
         List<Employee> employeeList = employeeRepository.findEmployeeByStatus(
                 EmployeeStatusEnum.ACTIVE);
@@ -37,6 +40,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     @PreAuthorize("@userSecurity.isOwner(#id)")
+    @Cacheable(cacheNames = "employees:byId", key = "#id")
     public RespEmployee getEmployeeById(Long id) {
         Employee getEmployee = employeeRepository.findEmployeeByIdAndStatus
                 (id, EmployeeStatusEnum.ACTIVE).orElseThrow(() -> new EmployeeNotFoundException("Employee not found"));
@@ -45,13 +49,17 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
+    @CacheEvict(cacheNames = "employees:all", allEntries = true)
     public RespEmployee createEmployee(ReqEmployee request) {
         Employee saveEmplooye = employeeRepository.save(employeeMapper.toEntity(request));
         return employeeMapper.toResponse(saveEmplooye);
     }
 
     @Override
-    public RespEmployee updateEmployee(Long id, ReqEmployee request) {
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "employees:all", allEntries = true),
+            @CacheEvict(cacheNames = "employees:byId", key = "#id")
+    })    public RespEmployee updateEmployee(Long id, ReqEmployee request) {
 
         Employee employee = employeeRepository.findEmployeeByIdAndStatus(id, EmployeeStatusEnum.ACTIVE).orElseThrow(
                 () -> new EmployeeNotFoundException("Employee is not found")
@@ -63,7 +71,10 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public void terminateEmployeeById(Long employeeId) {
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "employees:all", allEntries = true),
+            @CacheEvict(cacheNames = "employees:byId", key = "#id")
+    })    public void terminateEmployeeById(Long employeeId) {
         Employee employee = employeeRepository.findEmployeeByIdAndStatus(employeeId, EmployeeStatusEnum.ACTIVE).orElseThrow(
                 () -> new EmployeeNotFoundException("Employee is not found "));
 

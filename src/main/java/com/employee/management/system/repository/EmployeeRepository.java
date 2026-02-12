@@ -2,6 +2,7 @@ package com.employee.management.system.repository;
 
 import com.employee.management.system.entity.Employee;
 import com.employee.management.system.enums.EmployeeStatusEnum;
+import org.reactivestreams.Publisher;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -15,7 +16,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
     Optional<Employee> findEmployeeByIdAndStatus(Long id, EmployeeStatusEnum status);
 
-    Optional<Employee> findEmployeeById(Long id);
+   Optional<Employee> findEmployeeById(Long id);
 
     Optional<List<Employee>> findByPosition_Department_IdAndStatus(Long departmentId, EmployeeStatusEnum status);
 

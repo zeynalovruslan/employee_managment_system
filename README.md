@@ -146,4 +146,5 @@ implementasiya edilmişdir.
 ## Müəllif
 
 Ruslan Zeynalov
+
 Java Backend Developer

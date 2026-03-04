@@ -89,7 +89,7 @@ util
 ### Repository-ni klonla
 
 ```
-git clone https://github.com/yourusername/employee-management-system.git
+git clone https://github.com/zeynalovruslan/employee_managment_system
 ```
 
 ### Build et
